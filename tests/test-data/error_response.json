@@ -1,0 +1,6 @@
+{
+  "result": "error",
+  "error_code": "ACCESS_DENIED",
+  "error_text": "Auth rate limit exceeded",
+  "error_text_ru": ""
+}
