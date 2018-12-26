@@ -5,16 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 )
 
 // API gives a set of interfaces to Movizor service API
 type API struct {
-	Endpoint string
-	Project  string
-	Token    string
-	Client   *http.Client
+	Endpoint  string
+	Project   string
+	Token     string
+	Client    *http.Client
+	IsLogging bool
+
+	//Buffer          int
+	//shutdownChannel chan interface{}
 }
 
 // NewMovizorAPIWithEndpoint creates new instance of Movizor API
@@ -22,10 +28,13 @@ type API struct {
 // in case it will be moved to another address.
 func NewMovizorAPIWithEndpoint(endp string, prj string, token string) (*API, error) {
 	api := &API{
-		Endpoint: endp,
-		Project:  prj,
-		Token:    token,
-		Client:   &http.Client{},
+		Endpoint:  endp,
+		Project:   prj,
+		Token:     token,
+		Client:    &http.Client{},
+		IsLogging: false,
+		//Buffer:          100,
+		//shutdownChannel: make(chan interface{}),
 	}
 	return api, nil
 }
@@ -62,29 +71,49 @@ func (api *API) MakeRequest(action string, params url.Values) (APIResponse, erro
 
 	// Response handling
 	var apiResp APIResponse
-	err = api.decodeAPIResponse(resp.Body, &apiResp)
+	bytes, err := api.decodeAPIResponse(resp.Body, &apiResp)
 	if err != nil {
-		return apiResp, err
+		return APIResponse{}, err
 	}
 
-	return apiResp, nil
-}
-
-// decodeAPIResponse checks if response
-func (api *API) decodeAPIResponse(responseBody io.Reader, resp *APIResponse) (err error) {
-	dec := json.NewDecoder(responseBody)
-	err = dec.Decode(resp)
-	if err != nil {
-		return
-	}
-
-	if resp.Result == "success" {
-		return
+	if apiResp.Result == "success" {
+		// ToDo: Сделать логирование на logrus
+		if api.IsLogging {
+			log.Printf("INFO: request: %s\nresponse: %s", req.URL, bytes)
+		}
+		return apiResp, nil
 	}
 
 	err = errors.New(fmt.Sprintf("movizor API returns error on request: %s - %s",
-		resp.ErrorCode, resp.ErrorText))
-	return
+		apiResp.ErrorCode, apiResp.ErrorText))
+	// ToDo: Сделать логирование на logrus
+	if api.IsLogging {
+		log.Printf("ERROR: request: %s\nresponse: %s", req.URL, bytes)
+	}
+
+	return apiResp, err
+}
+
+// decodeAPIResponse checks if response
+func (api *API) decodeAPIResponse(responseBody io.Reader, resp *APIResponse) (_ []byte, err error) {
+	if !api.IsLogging {
+		dec := json.NewDecoder(responseBody)
+		err = dec.Decode(resp)
+		return
+	}
+
+	// if logging is on, read response body
+	data, err := ioutil.ReadAll(responseBody)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(data, resp)
+	if err != nil {
+		return
+	}
+
+	return data, nil
 }
 
 // GetBalance returns current remain of money and collected credit
@@ -100,11 +129,96 @@ func (api *API) GetBalance() (Balance, error) {
 	if err != nil {
 		return Balance{}, err
 	}
-
 	return b, nil
 }
 
-// GetObjectPositions returns array of objects with its positions and ETA
+func (api *API) AddObject(o Object, oo *ObjectAddOptions) (bool, error) {
+	v := o.values()
+	if oo != nil {
+		oo.addValuesTo(&v)
+	}
+
+	_, err := api.MakeRequest("object_add", v)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
+	resp, err := api.MakeRequest("object_get", o.values())
+	if err != nil {
+		return ObjectInfo{}, err
+	}
+
+	var oi ObjectInfo
+	err = json.Unmarshal(resp.Data, &oi)
+	if err != nil {
+		return ObjectInfo{}, err
+	}
+
+	return oi, nil
+}
+
+func (api *API) EditObject(o Object, oo *ObjectEditOptions) (bool, error) {
+	v := o.values()
+	if oo != nil {
+		oo.addValuesTo(&v)
+	}
+
+	_, err := api.MakeRequest("object_edit", v)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (api *API) DeleteObject(o Object) (bool, error) {
+	_, err := api.MakeRequest("object_delete", o.values())
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (api *API) ReactivateObject(o Object) (bool, error) {
+	_, err := api.MakeRequest("object_reactivate", o.values())
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (api *API) CancelTariffChangeObject(o Object) (bool, error) {
+	_, err := api.MakeRequest("object_cancel_tariff", o.values())
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// GetObjectPositions returns slice of objects with its positions and ETA
+func (api *API) GetObjects() (ObjectsWithStatus, error) {
+	resp, err := api.MakeRequest("object_list", nil)
+	if err != nil {
+		return ObjectsWithStatus{}, err
+	}
+
+	var o ObjectsWithStatus
+	err = json.Unmarshal(resp.Data, &o)
+	if err != nil {
+		return ObjectsWithStatus{}, err
+	}
+
+	return o, nil
+}
+
+// GetObjectPositions returns slice of objects with its positions and ETA
 func (api *API) GetObjectPositions() (ObjectPositions, error) {
 	resp, err := api.MakeRequest("pos_objects", nil)
 	if err != nil {
@@ -118,4 +232,48 @@ func (api *API) GetObjectPositions() (ObjectPositions, error) {
 	}
 
 	return op, nil
+}
+
+//func (api *API) GetObjectPositionsChan(sleep time.Duration) (ObjectPositionsChannel, error) {
+//	ch := make(chan ObjectPosition, api.Buffer)
+//
+//	go func() {
+//		for {
+//			select {
+//			case <-api.shutdownChannel:
+//				return
+//			default:
+//			}
+//
+//			positions, err := api.GetObjectPositions()
+//			if err != nil {
+//				log.Println(err)
+//				log.Println("failed to get object positions")
+//
+//				continue
+//			}
+//
+//			for _, pos := range positions {
+//				ch <- pos
+//			}
+//			time.Sleep(sleep)
+//		}
+//	}()
+//
+//	return ch, nil
+//}
+
+func (api *API) GetOperatorInfo(o Object) (OperatorInfo, error) {
+	resp, err := api.MakeRequest("get_operator", o.values())
+	if err != nil {
+		return OperatorInfo{}, err
+	}
+
+	var oi OperatorInfo
+	err = json.Unmarshal(resp.Data, &oi)
+	if err != nil {
+		return OperatorInfo{}, err
+	}
+
+	return oi, nil
 }

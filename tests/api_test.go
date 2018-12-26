@@ -1,47 +1,52 @@
 package tests
 
 import (
+	"fmt"
 	"oboz/movizor"
 	"testing"
+	"time"
 )
 
 const (
-	Project = "oboz"
-	Token   = "p1lb9h8xy5qe2ruf"
+	project = "adsfjjfadskfj"
+	token   = "kasdnfkjnkjfn"
 )
 
+const testLogging = true
+
 func TestNewMovizorAPIWithEndpoint(t *testing.T) {
-	api, err := movizor.NewMovizorAPIWithEndpoint("https://movizor.ru/api", Project, Token)
+	api, err := movizor.NewMovizorAPIWithEndpoint("https://movizor.ru/api", project, token)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if api.Endpoint != "https://movizor.ru/api" || api.Project != Project || api.Token != Token {
+	if api.Endpoint != "https://movizor.ru/api" || api.Project != project || api.Token != token {
 		t.Fatal("type API cannot be set")
 	}
 }
 
 func TestNewMovizorAPI(t *testing.T) {
-	api, err := movizor.NewMovizorAPI(Project, Token)
+	api, err := movizor.NewMovizorAPI(project, token)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if api.Endpoint != "https://movizor.ru/api" || api.Project != Project || api.Token != Token {
+	if api.Endpoint != "https://movizor.ru/api" || api.Project != project || api.Token != token {
 		t.Fatal("type API cannot be set")
 	}
 }
 
 func TestMakeRequestSuccess(t *testing.T) {
-	api, err := movizor.NewMovizorAPI(Project, Token)
+	api, err := movizor.NewMovizorAPI(project, token)
 	if err != nil {
 		t.Fatal(err)
 	}
+	api.IsLogging = testLogging
+
 	r, err := api.MakeRequest("pos_objects", nil)
 	if err != nil || r.Result != "success" {
 		t.Fatal(err)
 	}
-	//fmt.Println(string(r.Data))
 }
 
 func TestMakeRequestError(t *testing.T) {
@@ -49,6 +54,8 @@ func TestMakeRequestError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	api.IsLogging = testLogging
+
 	r, err := api.MakeRequest("balance", nil)
 	if err == nil || r.Result != "error" {
 		t.Fatal(err)
@@ -56,7 +63,7 @@ func TestMakeRequestError(t *testing.T) {
 }
 
 func TestGetBalance(t *testing.T) {
-	api, err := movizor.NewMovizorAPI(Project, Token)
+	api, err := movizor.NewMovizorAPI(project, token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,11 +80,120 @@ func TestGetBalance(t *testing.T) {
 	// fmt.Println(string(b.TariffPlans["eventsms"]))
 }
 
-func TestGetObjectPosition(t *testing.T) {
-	api, err := movizor.NewMovizorAPI(Project, Token)
+func TestAddObject(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
 	if err != nil {
 		t.Fatal(err)
 	}
+	api.IsLogging = testLogging
+
+	ok, err := api.AddObject("+7 968 062-15-56",
+		&movizor.ObjectAddOptions{
+			Title:  "Объект 8",
+			Tariff: movizor.TariffManual,
+		})
+	if err != nil || !ok {
+		t.Fatal("object_add action cannot be parsed")
+	}
+}
+
+func TestGetObjectInfo(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsLogging = testLogging
+
+	o, err := api.GetObjectInfo("+7 963 654 5272")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err != nil || !(o.Status == movizor.StatusOff ||
+		o.Status == movizor.StatusOk ||
+		o.Status == movizor.StatusRejected ||
+		o.Status == movizor.StatusNew ||
+		o.Status == movizor.StatusWaitOk ||
+		o.Status == movizor.StatusWaitOff) {
+		t.Fatal("object_get action cannot be parsed")
+	}
+}
+
+func TestEditObject(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsLogging = testLogging
+
+	ok, err := api.EditObject("+7 963 654 5272",
+		&movizor.ObjectEditOptions{
+			Title:   "Объект 1",
+			Tariff:  movizor.TariffManual,
+			DateOff: "23.12.2018 16:03:00",
+		})
+	if err != nil || !ok {
+		t.Fatal("object_edit action cannot be parsed")
+	}
+}
+
+func TestDeleteObject(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsLogging = testLogging
+
+	ok, err := api.DeleteObject("+7 968 062-15-56")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err != nil || !ok {
+		t.Fatal("object_delete action cannot be parsed")
+	}
+}
+
+func TestReactivateObject(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsLogging = testLogging
+
+	ok, err := api.ReactivateObject("+7 963 654 5272")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err != nil || !ok {
+		t.Fatal("object_reactivate action cannot be parsed")
+	}
+}
+
+func TestCancelTariffChangeObject(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsLogging = testLogging
+
+	ok, err := api.CancelTariffChangeObject("79063520695")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err != nil || !ok {
+		t.Fatal("object_cancel_tariff action cannot be parsed")
+	}
+}
+
+func TestGetObjectPositions(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsLogging = testLogging
 
 	op, err := api.GetObjectPositions()
 	if err != nil {
@@ -87,4 +203,60 @@ func TestGetObjectPosition(t *testing.T) {
 	if v, err := op[0].Lat.Float64(); err != nil || v == 0.0 {
 		t.Fatal("pos_objects action cannot be parsed")
 	}
+}
+
+//func TestGetObjectPositionsChan(t *testing.T) {
+//	api, err := movizor.NewMovizorAPI(project, token)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	//api.IsLogging = testLogging
+//	pos, err := api.GetObjectPositionsChan(time.Second * 15)
+//	for p := range pos {
+//		if p.Phone.String() == "" {
+//			continue
+//		}
+//		fmt.Printf("Object [%s] at lon: %s lat: %s", p.Phone.String(), p.Lon.String(), p.Lat.String())
+//	}
+//}
+
+func TestGetObjects(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsLogging = testLogging
+
+	o, err := api.GetObjects()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err != nil || !(o[0].Status == movizor.StatusOk || o[0].Status == movizor.StatusOff) {
+		t.Fatal("object_list action cannot be parsed")
+	}
+}
+
+func TestGetOperatorInfo(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsLogging = testLogging
+
+	o, err := api.GetOperatorInfo("79858393293")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err != nil || !(o.Operator == movizor.OperatorMTS ||
+		o.Operator == movizor.OperatorMegafon ||
+		o.Operator == movizor.OperatorBeeline ||
+		o.Operator == movizor.OperatorTele2) {
+		t.Fatal("get_operator action cannot be parsed")
+	}
+}
+
+func TestUnixTime(t *testing.T) {
+	fmt.Println(time.Unix(1545137883, 0))
 }

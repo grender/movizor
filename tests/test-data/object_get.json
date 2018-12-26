@@ -1,0 +1,31 @@
+{
+  "phone": "79630005272",
+  "status": "ok",
+  "confirmed": true,
+  "title": "Объект 4",
+  "tariff": "manual",
+  "tariff_new": null,
+  "last_timestamp": "1543525294",
+  "at_request": false,
+  "current_lon": "37.426606",
+  "current_lat": "55.876590",
+  "place": "Москва",
+  "distance": 0,
+  "distance_forecast_time": null,
+  "distance_forecast_status": null,
+  "on_parking": false,
+  "destination": [
+    {
+      "text": "Московская обл, г Химки, ул Панфилова, д 16 ",
+      "lat": "55.878779",
+      "lon": "37.426984",
+      "time": "22.11.2018 22:00",
+      "status": "finished"
+    }
+  ],
+  "offline_time": 0,
+  "pos_error": false,
+  "timestamp_off": "0",
+  "timestamp_add": "1542896000",
+  "metadata": []
+}
