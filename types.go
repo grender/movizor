@@ -91,6 +91,10 @@ type Destination struct {
 
 type ObjectsWithStatus []ObjectStatus
 
+func (os ObjectsWithStatus) Len() int           { return len(os) }
+func (os ObjectsWithStatus) Swap(i, j int)      { os[i], os[j] = os[j], os[i] }
+func (os ObjectsWithStatus) Less(i, j int) bool { return os[i].Phone < os[j].Phone }
+
 type ObjectStatus struct {
 	Phone  Object `json:"phone"`  // Номер телефона абонента
 	Status Status `json:"status"` // Статус добавления для отслеживания
@@ -104,6 +108,8 @@ type ObjectStatus struct {
 //		<-ch
 //	}
 //}
+
+type ObjectPositions []ObjectPosition
 
 type ObjectPosition struct {
 	Phone     Object      `json:"phone"`                  // Номер телефона абонента
@@ -127,12 +133,6 @@ func (op *ObjectPosition) LastTimeUpdated() time.Time {
 	v, _ := op.Timestamp.Int64()
 	return time.Unix(v, 0)
 }
-
-type ObjectPositions []ObjectPosition
-
-func (ops ObjectPositions) Len() int           { return len(ops) }
-func (ops ObjectPositions) Swap(i, j int)      { ops[i], ops[j] = ops[j], ops[i] }
-func (ops ObjectPositions) Less(i, j int) bool { return ops[i].Phone < ops[j].Phone }
 
 //type ObjectPositionsChannel <-chan ObjectPosition
 //
