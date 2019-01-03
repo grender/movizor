@@ -105,8 +105,6 @@ type ObjectStatus struct {
 //	}
 //}
 
-type ObjectPositions []ObjectPosition
-
 type ObjectPosition struct {
 	Phone     Object      `json:"phone"`                  // Номер телефона абонента
 	Lon       json.Number `json:"lon"`                    // Широта
@@ -129,6 +127,12 @@ func (op *ObjectPosition) LastTimeUpdated() time.Time {
 	v, _ := op.Timestamp.Int64()
 	return time.Unix(v, 0)
 }
+
+type ObjectPositions []ObjectPosition
+
+func (ops ObjectPositions) Len() int           { return len(ops) }
+func (ops ObjectPositions) Swap(i, j int)      { ops[i], ops[j] = ops[j], ops[i] }
+func (ops ObjectPositions) Less(i, j int) bool { return ops[i].Phone < ops[j].Phone }
 
 //type ObjectPositionsChannel <-chan ObjectPosition
 //
