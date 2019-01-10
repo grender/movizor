@@ -1,15 +1,13 @@
 package tests
 
 import (
-	"fmt"
 	"oboz/movizor"
 	"testing"
-	"time"
 )
 
 const (
-	project = "adsfjjfadskfj"
-	token   = "kasdnfkjnkjfn"
+	project = "oboz"
+	token   = "p1lb9h8xy5qe2ruf"
 )
 
 const testLogging = true
@@ -87,12 +85,12 @@ func TestAddObject(t *testing.T) {
 	}
 	api.IsLogging = testLogging
 
-	ok, err := api.AddObject("+7 968 062-15-56",
+	r, err := api.AddObject("+7 968 062-15-56",
 		&movizor.ObjectAddOptions{
 			Title:  "Объект 8",
 			Tariff: movizor.TariffManual,
 		})
-	if err != nil || !ok {
+	if err != nil && r.Result != "error" {
 		t.Fatal("object_add action cannot be parsed")
 	}
 }
@@ -126,13 +124,13 @@ func TestEditObject(t *testing.T) {
 	}
 	api.IsLogging = testLogging
 
-	ok, err := api.EditObject("+7 963 654 5272",
+	r, err := api.EditObject("+7 963 654 5272",
 		&movizor.ObjectEditOptions{
 			Title:   "Объект 1",
 			Tariff:  movizor.TariffManual,
 			DateOff: "23.12.2018 16:03:00",
 		})
-	if err != nil || !ok {
+	if err != nil && r.Result != "error" {
 		t.Fatal("object_edit action cannot be parsed")
 	}
 }
@@ -144,12 +142,12 @@ func TestDeleteObject(t *testing.T) {
 	}
 	api.IsLogging = testLogging
 
-	ok, err := api.DeleteObject("+7 968 062-15-56")
+	r, err := api.DeleteObject("+7 968 062-15-56")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err != nil || !ok {
+	if err != nil && r.Result != "error" {
 		t.Fatal("object_delete action cannot be parsed")
 	}
 }
@@ -161,12 +159,12 @@ func TestReactivateObject(t *testing.T) {
 	}
 	api.IsLogging = testLogging
 
-	ok, err := api.ReactivateObject("+7 963 654 5272")
+	r, err := api.ReactivateObject("+7 963 654 5272")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err != nil || !ok {
+	if err != nil && r.Result != "error" {
 		t.Fatal("object_reactivate action cannot be parsed")
 	}
 }
@@ -178,12 +176,12 @@ func TestCancelTariffChangeObject(t *testing.T) {
 	}
 	api.IsLogging = testLogging
 
-	ok, err := api.CancelTariffChangeObject("79063520695")
+	r, err := api.CancelTariffChangeObject("79063520695")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err != nil || !ok {
+	if err != nil && r.Result != "error" {
 		t.Fatal("object_cancel_tariff action cannot be parsed")
 	}
 }
@@ -255,8 +253,4 @@ func TestGetOperatorInfo(t *testing.T) {
 		o.Operator == movizor.OperatorTele2) {
 		t.Fatal("get_operator action cannot be parsed")
 	}
-}
-
-func TestUnixTime(t *testing.T) {
-	fmt.Println(time.Unix(1545137883, 0))
 }

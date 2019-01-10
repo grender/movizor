@@ -132,18 +132,18 @@ func (api *API) GetBalance() (Balance, error) {
 	return b, nil
 }
 
-func (api *API) AddObject(o Object, oo *ObjectAddOptions) (bool, error) {
+func (api *API) AddObject(o Object, oo *ObjectAddOptions) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
 		oo.addValuesTo(&v)
 	}
 
-	_, err := api.MakeRequest("object_add", v)
+	resp, err := api.MakeRequest("object_add", v)
 	if err != nil {
-		return false, err
+		return resp, err
 	}
 
-	return true, nil
+	return resp, nil
 }
 
 func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
@@ -161,45 +161,45 @@ func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
 	return oi, nil
 }
 
-func (api *API) EditObject(o Object, oo *ObjectEditOptions) (bool, error) {
+func (api *API) EditObject(o Object, oo *ObjectEditOptions) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
 		oo.addValuesTo(&v)
 	}
 
-	_, err := api.MakeRequest("object_edit", v)
+	resp, err := api.MakeRequest("object_edit", v)
 	if err != nil {
-		return false, err
+		return resp, err
 	}
 
-	return true, nil
+	return resp, nil
 }
 
-func (api *API) DeleteObject(o Object) (bool, error) {
-	_, err := api.MakeRequest("object_delete", o.values())
+func (api *API) DeleteObject(o Object) (APIResponse, error) {
+	resp, err := api.MakeRequest("object_delete", o.values())
 	if err != nil {
-		return false, err
+		return resp, err
 	}
 
-	return true, nil
+	return resp, nil
 }
 
-func (api *API) ReactivateObject(o Object) (bool, error) {
-	_, err := api.MakeRequest("object_reactivate", o.values())
+func (api *API) ReactivateObject(o Object) (APIResponse, error) {
+	resp, err := api.MakeRequest("object_reactivate", o.values())
 	if err != nil {
-		return false, err
+		return resp, err
 	}
 
-	return true, nil
+	return resp, nil
 }
 
-func (api *API) CancelTariffChangeObject(o Object) (bool, error) {
-	_, err := api.MakeRequest("object_cancel_tariff", o.values())
+func (api *API) CancelTariffChangeObject(o Object) (APIResponse, error) {
+	resp, err := api.MakeRequest("object_cancel_tariff", o.values())
 	if err != nil {
-		return false, err
+		return resp, err
 	}
 
-	return true, nil
+	return resp, nil
 }
 
 // GetObjectPositions returns slice of objects with its positions and ETA
