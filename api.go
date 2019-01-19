@@ -13,11 +13,11 @@ import (
 
 // API gives a set of interfaces to Movizor service API
 type API struct {
-	Endpoint  string
-	Project   string
-	Token     string
-	Client    *http.Client
-	IsLogging bool
+	Endpoint string
+	Project  string
+	Token    string
+	Client   *http.Client
+	IsDebug  bool
 
 	//Buffer          int
 	//shutdownChannel chan interface{}
@@ -28,11 +28,11 @@ type API struct {
 // in case it will be moved to another address.
 func NewMovizorAPIWithEndpoint(endp string, prj string, token string) (*API, error) {
 	api := &API{
-		Endpoint:  endp,
-		Project:   prj,
-		Token:     token,
-		Client:    &http.Client{},
-		IsLogging: false,
+		Endpoint: endp,
+		Project:  prj,
+		Token:    token,
+		Client:   &http.Client{},
+		IsDebug:  false,
 		//Buffer:          100,
 		//shutdownChannel: make(chan interface{}),
 	}
@@ -77,8 +77,7 @@ func (api *API) MakeRequest(action string, params url.Values) (APIResponse, erro
 	}
 
 	if apiResp.Result == "success" {
-		// ToDo: Сделать логирование на logrus
-		if api.IsLogging {
+		if api.IsDebug {
 			log.Printf("INFO: request: %s\nresponse: %s", req.URL, bytes)
 		}
 		return apiResp, nil
@@ -86,8 +85,7 @@ func (api *API) MakeRequest(action string, params url.Values) (APIResponse, erro
 
 	err = errors.New(fmt.Sprintf("movizor API returns error on request: %s - %s",
 		apiResp.ErrorCode, apiResp.ErrorText))
-	// ToDo: Сделать логирование на logrus
-	if api.IsLogging {
+	if api.IsDebug {
 		log.Printf("ERROR: request: %s\nresponse: %s", req.URL, bytes)
 	}
 
@@ -96,7 +94,7 @@ func (api *API) MakeRequest(action string, params url.Values) (APIResponse, erro
 
 // decodeAPIResponse checks if response
 func (api *API) decodeAPIResponse(responseBody io.Reader, resp *APIResponse) (_ []byte, err error) {
-	if !api.IsLogging {
+	if !api.IsDebug {
 		dec := json.NewDecoder(responseBody)
 		err = dec.Decode(resp)
 		return
@@ -132,7 +130,7 @@ func (api *API) GetBalance() (Balance, error) {
 	return b, nil
 }
 
-func (api *API) AddObject(o Object, oo *ObjectAddOptions) (APIResponse, error) {
+func (api *API) AddObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
 		oo.addValuesTo(&v)
@@ -161,7 +159,7 @@ func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
 	return oi, nil
 }
 
-func (api *API) EditObject(o Object, oo *ObjectEditOptions) (APIResponse, error) {
+func (api *API) EditObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
 		oo.addValuesTo(&v)

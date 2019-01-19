@@ -39,7 +39,7 @@ func TestMakeRequestSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
 	r, err := api.MakeRequest("pos_objects", nil)
 	if err != nil || r.Result != "success" {
@@ -52,7 +52,7 @@ func TestMakeRequestError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
 	r, err := api.MakeRequest("balance", nil)
 	if err == nil || r.Result != "error" {
@@ -83,12 +83,18 @@ func TestAddObject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
-	r, err := api.AddObject("+7 968 062-15-56",
-		&movizor.ObjectAddOptions{
+	r, err := api.AddObject("+7 915 454-67-77",
+		&movizor.ObjectOptions{
 			Title:  "Объект 8",
 			Tariff: movizor.TariffManual,
+			Tags:   []string{"test1", "test2"},
+			Metadata: map[string]string{
+				"test4": "val4",
+				"test5": "val5",
+				"test6": "val6",
+			},
 		})
 	if err != nil && r.Result != "error" {
 		t.Fatal("object_add action cannot be parsed")
@@ -100,7 +106,7 @@ func TestGetObjectInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
 	o, err := api.GetObjectInfo("+7 963 654 5272")
 	if err != nil {
@@ -122,13 +128,13 @@ func TestEditObject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
-	r, err := api.EditObject("+7 963 654 5272",
-		&movizor.ObjectEditOptions{
-			Title:   "Объект 1",
-			Tariff:  movizor.TariffManual,
-			DateOff: "23.12.2018 16:03:00",
+	r, err := api.EditObject("+7 915 454-67-77",
+		&movizor.ObjectOptions{
+			Title:  "Объект 1",
+			Tariff: movizor.TariffManual,
+			//DateOff: "23.12.2018 16:03:00",
 		})
 	if err != nil && r.Result != "error" {
 		t.Fatal("object_edit action cannot be parsed")
@@ -140,7 +146,7 @@ func TestDeleteObject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
 	r, err := api.DeleteObject("+7 968 062-15-56")
 	if err != nil {
@@ -157,7 +163,7 @@ func TestReactivateObject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
 	r, err := api.ReactivateObject("+7 963 654 5272")
 	if err != nil {
@@ -174,7 +180,7 @@ func TestCancelTariffChangeObject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
 	r, err := api.CancelTariffChangeObject("79063520695")
 	if err != nil {
@@ -191,7 +197,7 @@ func TestGetObjectPositions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
 	op, err := api.GetObjectPositions()
 	if err != nil {
@@ -208,7 +214,7 @@ func TestGetObjectPositions(t *testing.T) {
 //	if err != nil {
 //		t.Fatal(err)
 //	}
-//	//api.IsLogging = testLogging
+//	//api.IsDebug = testLogging
 //	pos, err := api.GetObjectPositionsChan(time.Second * 15)
 //	for p := range pos {
 //		if p.Phone.String() == "" {
@@ -223,7 +229,7 @@ func TestGetObjects(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
 	o, err := api.GetObjects()
 	if err != nil {
@@ -240,7 +246,7 @@ func TestGetOperatorInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api.IsLogging = testLogging
+	api.IsDebug = testLogging
 
 	o, err := api.GetOperatorInfo("79858393293")
 	if err != nil {
