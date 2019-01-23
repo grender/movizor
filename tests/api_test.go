@@ -192,6 +192,23 @@ func TestCancelTariffChangeObject(t *testing.T) {
 	}
 }
 
+func TestGetObjectLastPosition(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsDebug = testLogging
+
+	lp, err := api.GetObjectLastPosition("79154546777")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if v, err := lp.Lat.Float64(); err != nil || v == 0.0 {
+		t.Fatal("pos_last action cannot be parsed")
+	}
+}
+
 func TestGetObjectPositions(t *testing.T) {
 	api, err := movizor.NewMovizorAPI(project, token)
 	if err != nil {
@@ -208,21 +225,6 @@ func TestGetObjectPositions(t *testing.T) {
 		t.Fatal("pos_objects action cannot be parsed")
 	}
 }
-
-//func TestGetObjectPositionsChan(t *testing.T) {
-//	api, err := movizor.NewMovizorAPI(project, token)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	//api.IsDebug = testLogging
-//	pos, err := api.GetObjectPositionsChan(time.Second * 15)
-//	for p := range pos {
-//		if p.Phone.String() == "" {
-//			continue
-//		}
-//		fmt.Printf("Object [%s] at lon: %s lat: %s", p.Phone.String(), p.Lon.String(), p.Lat.String())
-//	}
-//}
 
 func TestGetObjects(t *testing.T) {
 	api, err := movizor.NewMovizorAPI(project, token)

@@ -131,6 +131,7 @@ func (api *API) GetBalance() (Balance, error) {
 	return b, nil
 }
 
+// AddObject подключает абонента к мониторингу.
 func (api *API) AddObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
@@ -145,6 +146,7 @@ func (api *API) AddObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 	return resp, nil
 }
 
+// GetObjectInfo возвращает информацию о ранее добавленном абоненте.
 func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
 	resp, err := api.MakeRequest("object_get", o.values())
 	if err != nil {
@@ -160,6 +162,8 @@ func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
 	return oi, nil
 }
 
+// Редактирование опций мониторинга ранее добавленного абонента.
+// ToDo: добавить опцию немедленно перехода на новый тариф activate
 func (api *API) EditObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
@@ -174,34 +178,7 @@ func (api *API) EditObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 	return resp, nil
 }
 
-func (api *API) DeleteObject(o Object) (APIResponse, error) {
-	resp, err := api.MakeRequest("object_delete", o.values())
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
-}
-
-func (api *API) ReactivateObject(o Object) (APIResponse, error) {
-	resp, err := api.MakeRequest("object_reactivate", o.values())
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
-}
-
-func (api *API) CancelTariffChangeObject(o Object) (APIResponse, error) {
-	resp, err := api.MakeRequest("object_cancel_tariff", o.values())
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
-}
-
-// GetObjectPositions returns slice of objects with its positions and ETA
+// GetObjects возвращает список абонентов, добавленных в мониторинг.
 func (api *API) GetObjects() (ObjectsWithStatus, error) {
 	resp, err := api.MakeRequest("object_list", nil)
 	if err != nil {
@@ -215,6 +192,54 @@ func (api *API) GetObjects() (ObjectsWithStatus, error) {
 	}
 
 	return o, nil
+}
+
+// DeleteObject отключает и удаляет абонента из системы мониторинга.
+func (api *API) DeleteObject(o Object) (APIResponse, error) {
+	resp, err := api.MakeRequest("object_delete", o.values())
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
+}
+
+// ReactivateObject производит повторное подключение к системе абонента, если сработало автоматическое отключение.
+// Невозможно повторно подключить ранее удаленный объект мониторинга.
+func (api *API) ReactivateObject(o Object) (APIResponse, error) {
+	resp, err := api.MakeRequest("object_reactivate", o.values())
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
+}
+
+// CancelTariffChangeObject отменяет переход на новый тариф со следующего дня. Если с помощтю EditObject
+// и без автоматической активации меняется тариф, то эту смену можно отменить.
+func (api *API) CancelTariffChangeObject(o Object) (APIResponse, error) {
+	resp, err := api.MakeRequest("object_cancel_tariff", o.values())
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
+}
+
+// ObjectLastPosition возвращает информацию о последнем зафиксированном в системе местоположении.
+func (api *API) GetObjectLastPosition(o Object) (ObjectLastPosition, error) {
+	resp, err := api.MakeRequest("pos_last", o.values())
+	if err != nil {
+		return ObjectLastPosition{}, err
+	}
+
+	var lp ObjectLastPosition
+	err = json.Unmarshal(resp.Data, &lp)
+	if err != nil {
+		return ObjectLastPosition{}, err
+	}
+
+	return lp, nil
 }
 
 // GetObjectPositions returns slice of objects with its positions and ETA

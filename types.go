@@ -52,27 +52,28 @@ func (o Object) values() url.Values {
 // Почти полная информация по объекту.
 // ToDo: Сделать обертки для ETA и ETAStatus - там могут быть null
 type ObjectInfo struct {
-	Phone         Object            `json:"phone"`                              // Номер абонента
-	Status        Status            `json:"status"`                             // status type
-	Confirmed     bool              `json:"confirmed"`                          // Получено подтверждение от абонента
-	Title         string            `json:"title"`                              // Имя абонента (название объекта)
-	Tariff        string            `json:"tariff"`                             // Текущий тарифный план
-	TariffNew     string            `json:"tariff_new,omitempty"`               // Новый тарифный план со следующего дня
-	LastTimestamp int64             `json:"last_timestamp,string"`              // Время последнего запроса на определение местоположения
-	AtRequest     bool              `json:"at_request,omitempty"`               // Производится определение местоположения в данный момент
-	CurrentLon    float32           `json:"current_lon,string"`                 // Широта последнего местоположения
-	CurrentLat    float32           `json:"current_lat,string"`                 // Долгота последнего местоположения
-	Place         string            `json:"place,omitempty"`                    // Населенный пункт последнего местоположения
-	Distance      float64           `json:"distance,omitempty"`                 // Остаток в км до конечной точки
-	ETA           json.Number       `json:"distance_forecast_time,omitempty"`   // Прогноз оставшегося времени до конечной точки
-	ETAStatus     string            `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки
-	OnParking     bool              `json:"on_parking,omitempty"`
-	Destination   []Destination     `json:"destination,omitempty"`
-	OfflineTime   json.Number       `json:"offline_time,omitempty"` // Время последнего известного местоположения
-	PosError      bool              `json:"pos_error,omitempty"`    // Последнее местоположение не удалось определить
-	TimestampOff  json.Number       `json:"timestamp_off"`          // Время автоматического отключения от мониторинга
-	TimestampAdd  json.Number       `json:"timestamp_add"`
-	Metadata      []json.RawMessage `json:"metadata,omitempty"` // Метаинформация объекта, массив
+	Phone         Object        `json:"phone"`                              // Номер абонента
+	Status        Status        `json:"status"`                             // status type
+	Confirmed     bool          `json:"confirmed"`                          // Получено подтверждение от абонента
+	Title         string        `json:"title"`                              // Имя абонента (название объекта)
+	Tariff        string        `json:"tariff"`                             // Текущий тарифный план
+	TariffNew     string        `json:"tariff_new,omitempty"`               // Новый тарифный план со следующего дня
+	LastTimestamp int64         `json:"last_timestamp,string"`              // Время последнего запроса на определение местоположения
+	AtRequest     bool          `json:"at_request,omitempty"`               // Производится определение местоположения в данный момент
+	CurrentLon    float32       `json:"current_lon,string"`                 // Широта последнего местоположения
+	CurrentLat    float32       `json:"current_lat,string"`                 // Долгота последнего местоположения
+	Place         string        `json:"place,omitempty"`                    // Населенный пункт последнего местоположения
+	Distance      float64       `json:"distance,omitempty"`                 // Остаток в км до конечной точки
+	ETA           json.Number   `json:"distance_forecast_time,omitempty"`   // Прогноз оставшегося времени до конечной точки
+	ETAStatus     string        `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки
+	OnParking     bool          `json:"on_parking,omitempty"`
+	Destination   []Destination `json:"destination,omitempty"`
+	OfflineTime   json.Number   `json:"offline_time,omitempty"` // Время последнего известного местоположения
+	PosError      bool          `json:"pos_error,omitempty"`    // Последнее местоположение не удалось определить
+	TimestampOff  json.Number   `json:"timestamp_off"`          // Время автоматического отключения от мониторинга
+	TimestampAdd  json.Number   `json:"timestamp_add"`
+	// ToDo: заменить на map[string]string и протестировать
+	Metadata []json.RawMessage `json:"metadata,omitempty"` // Метаинформация объекта, массив
 }
 
 // TimeOff возвращает время отколючения объекта от мониторинга в типе time.
@@ -88,6 +89,7 @@ func (oi *ObjectInfo) TimeAdded() time.Time {
 }
 
 // Список точек назначения, которые должен посетить Водитель.
+// ToDo: Протестировать работу
 type Destination struct {
 	Text   string    `json:"text"`
 	Lat    float32   `json:"lat,string"`
@@ -109,6 +111,23 @@ type ObjectStatus struct {
 	Status Status `json:"status"` // Статус добавления для отслеживания
 }
 
+// Информация о последнем зафиксированном в системе местоположении
+type ObjectLastPosition struct {
+	Lon              json.Number `json:"lon"`                    // Долгота
+	Lat              json.Number `json:"lat"`                    // Широта
+	Timestamp        int64       `json:"timestamp"`              // Время получения координат для этой точки
+	TimestampRequest int64       `json:"timestamp_request"`      // Время создания запроса на получение координат
+	Deviation        int64       `json:"radius"`                 // Радиус погрешности (м)
+	Distance         json.Number `json:"distance"`               // Остаток в км до конечной точки
+	ETA              json.Number `json:"distance_forecast_time"` // Прогноз оставшегося времени до конечной точки
+	// Прогноз строится в зависимости от наличия информации о конечном пункте назначения и времени прибытия.
+	// Если этой информации нет, значения элементов будут пустыми.
+	ETAStatus ETAStatus `json:"distance_forecast_status"` // Прогноз успеваемости до конечной точки.
+	// Прогноз строится в зависимости от наличия информации о конечном пункте назначения и времени прибытия.
+	// Если этой информации нет, значения элементов будут пустыми.
+	Place string `json:"place"` // Населенный пункт местоположения.
+}
+
 // Список объектов с координатами, последним временем обновления координат, текущим местонахождением и ETA.
 type ObjectPositions []ObjectPosition
 
@@ -118,14 +137,14 @@ type ObjectPosition struct {
 	Lon       json.Number `json:"lon"`                              // Широта
 	Lat       json.Number `json:"lat"`                              // Долгота
 	Timestamp json.Number `json:"timestamp"`                        // Время
-	Deviation json.Number `json:"radius"`                           // Радиус погрешности (м)
+	Deviation int64       `json:"radius"`                           // Радиус погрешности (м)
 	Place     string      `json:"place"`                            // Населенный пункт местоположения
 	Distance  json.Number `json:"distance,omitempty"`               // Остаток в км до конечной точки
 	ETA       json.Number `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
 	// Прогноз строится в зависимости от наличия информации
 	// о конечном пункте назначения и времени прибытия.
 	// Если этой информации нет, значения элементов будут пустыми.
-	ETAStatus string `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки.
+	ETAStatus ETAStatus `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки.
 	// Прогноз строится в зависимости от наличия информации
 	// о конечном пункте назначения и времени прибытия.
 	// Если этой информации нет, значения элементов будут пустыми.

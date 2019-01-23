@@ -51,6 +51,7 @@ type ETAStatus string
 
 const (
 	NoETAStatus       ETAStatus = ""         // статус не указан
+	NullETAStatus     ETAStatus = "null"     // статус не указан - значение null не парсится, но и ошибок нет.
 	OkETAStatus       ETAStatus = "ok"       // успевает
 	LateETAStatus     ETAStatus = "late"     // опаздывает
 	FinishedETAStatus ETAStatus = "finished" // прибыл

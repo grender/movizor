@@ -2,6 +2,7 @@ package tests
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"oboz/movizor"
 	"path/filepath"
@@ -56,6 +57,32 @@ func TestBalanceDataUnmarshal(t *testing.T) {
 	}
 }
 
+func TestObjectLastPositionUnmarshal(t *testing.T) {
+	d1, err := ioutil.ReadFile(filepath.Join(dataPath, "pos_last1.json"))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	var lp movizor.ObjectLastPosition
+	err = json.Unmarshal(d1, &lp)
+
+	if err != nil || lp.ETAStatus != movizor.NoETAStatus {
+		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d1, movizor.ObjectLastPosition{}, err)
+	}
+
+	d2, err := ioutil.ReadFile(filepath.Join(dataPath, "pos_last2.json"))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	err = json.Unmarshal(d2, &lp)
+
+	if err != nil || lp.ETAStatus != movizor.NoETAStatus {
+		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d2, movizor.ObjectLastPosition{}, err)
+	}
+
+}
+
 func TestObjectsUnmarshal(t *testing.T) {
 	d, err := ioutil.ReadFile(filepath.Join(dataPath, "object_list.json"))
 	if err != nil {
@@ -79,7 +106,8 @@ func TestObjectPositionsUnmarshal(t *testing.T) {
 	var po movizor.ObjectPositions
 	err = json.Unmarshal(d, &po)
 
-	if err != nil || po[0].Phone != "79630005272" {
+	if err != nil || po[0].Phone != "79630005272" || po[0].ETAStatus != movizor.NoETAStatus {
+		fmt.Println(po[0].ETAStatus)
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.ObjectPositions{}, err)
 	}
 }
