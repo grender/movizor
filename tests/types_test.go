@@ -51,8 +51,7 @@ func TestBalanceDataUnmarshal(t *testing.T) {
 	var bd movizor.Balance
 	err = json.Unmarshal(d, &bd)
 
-	if _, ok := bd.TariffPlans["mts"]; err != nil || !ok ||
-		bd.Balance != 476.50 {
+	if _, ok := bd.TariffPlans["mts"]; err != nil || !ok {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.Balance{}, err)
 	}
 }
@@ -162,7 +161,7 @@ func TestObjectEventsUnmarshal(t *testing.T) {
 	var e movizor.ObjectEvents
 	err = json.Unmarshal(d, &e)
 
-	if err != nil || !(e[0].Timestamp == 1548076000 || e[0].EventID == 35425471) {
+	if err != nil {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.ObjectEvents{}, err)
 	}
 
@@ -205,9 +204,12 @@ func TestSubscribedEventsUnmarshal(t *testing.T) {
 
 	var se movizor.SubscribedEvents
 	err = json.Unmarshal(d, &se)
+	if err != nil {
+		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.SubscribedEvents{}, err)
+	}
 
-	if err != nil ||
-		!(se[0].Timestamp == 1548084632 || se[0].Event != movizor.RejectEvent) {
+	if v, err := se[0].Timestamp.Int64(); err != nil ||
+		!(v == 1548084632 || se[0].Event != movizor.RejectEvent) {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.SubscribedEvents{}, err)
 	}
 }

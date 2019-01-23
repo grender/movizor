@@ -20,17 +20,17 @@ type APIResponse struct {
 }
 
 //type Tariff struct {
-//	AbonentPayment float64 `json:"abon,string"`    // Абоненская плата
-//	RequestCost    float64 `json:"request,string"` // Стоимость запроса
+//	AbonentPayment json.Number `json:"abon"`    // Абоненская плата
+//	RequestCost    json.Number `json:"request"` // Стоимость запроса
 //	TariffTittle   string      `json:"title"`   // Название тарифа
 //}
 
 // Текущий баланс по договору и список подключенных тарифов по мобильным операторам.
 type Balance struct {
-	Balance      float64                    `json:"balance,string"` // Текущий остаток средств на балансе
-	Credit       float64                    `json:"credit,string"`  // Сумма кредитных средств на балансе
-	ContractType string                     `json:"type"`           // Тип договора
-	TariffPlans  map[string]json.RawMessage `json:"tariff"`         // Список операторов с их тарифами и доп тарифы
+	Balance      json.Number                `json:"balance"` // Текущий остаток средств на балансе
+	Credit       json.Number                `json:"credit"`  // Сумма кредитных средств на балансе
+	ContractType string                     `json:"type"`    // Тип договора
+	TariffPlans  map[string]json.RawMessage `json:"tariff"`  // Список операторов с их тарифами и доп тарифы
 }
 
 // Номер подключаемого абонента в формате MSISDN (например, 79210010203).
@@ -58,12 +58,12 @@ type ObjectInfo struct {
 	Title         string        `json:"title"`                              // Имя абонента (название объекта)
 	Tariff        string        `json:"tariff"`                             // Текущий тарифный план
 	TariffNew     string        `json:"tariff_new,omitempty"`               // Новый тарифный план со следующего дня
-	LastTimestamp int64         `json:"last_timestamp,string"`              // Время последнего запроса на определение местоположения
+	LastTimestamp json.Number   `json:"last_timestamp"`                     // Время последнего запроса на определение местоположения
 	AtRequest     bool          `json:"at_request,omitempty"`               // Производится определение местоположения в данный момент
-	CurrentLon    float32       `json:"current_lon,string"`                 // Широта последнего местоположения
-	CurrentLat    float32       `json:"current_lat,string"`                 // Долгота последнего местоположения
+	CurrentLon    json.Number   `json:"current_lon"`                        // Широта последнего местоположения
+	CurrentLat    json.Number   `json:"current_lat"`                        // Долгота последнего местоположения
 	Place         string        `json:"place,omitempty"`                    // Населенный пункт последнего местоположения
-	Distance      float64       `json:"distance,omitempty"`                 // Остаток в км до конечной точки
+	Distance      json.Number   `json:"distance,omitempty"`                 // Остаток в км до конечной точки
 	ETA           json.Number   `json:"distance_forecast_time,omitempty"`   // Прогноз оставшегося времени до конечной точки
 	ETAStatus     string        `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки
 	OnParking     bool          `json:"on_parking,omitempty"`
@@ -91,11 +91,11 @@ func (oi *ObjectInfo) TimeAdded() time.Time {
 // Список точек назначения, которые должен посетить Водитель.
 // ToDo: Протестировать работу
 type Destination struct {
-	Text   string    `json:"text"`
-	Lat    float32   `json:"lat,string"`
-	Lon    float32   `json:"lon,string"`
-	Time   string    `json:"time"`
-	Status ETAStatus `json:"status"`
+	Text   string      `json:"text"`
+	Lat    json.Number `json:"lat"`
+	Lon    json.Number `json:"lon"`
+	Time   string      `json:"time"`
+	Status ETAStatus   `json:"status"`
 }
 
 // Список объектов с их статусами.
@@ -115,9 +115,9 @@ type ObjectStatus struct {
 type ObjectLastPosition struct {
 	Lon              json.Number `json:"lon"`                    // Долгота
 	Lat              json.Number `json:"lat"`                    // Широта
-	Timestamp        int64       `json:"timestamp"`              // Время получения координат для этой точки
-	TimestampRequest int64       `json:"timestamp_request"`      // Время создания запроса на получение координат
-	Deviation        int64       `json:"radius"`                 // Радиус погрешности (м)
+	Timestamp        json.Number `json:"timestamp"`              // Время получения координат для этой точки
+	TimestampRequest json.Number `json:"timestamp_request"`      // Время создания запроса на получение координат
+	Deviation        json.Number `json:"radius"`                 // Радиус погрешности (м)
 	Distance         json.Number `json:"distance"`               // Остаток в км до конечной точки
 	ETA              json.Number `json:"distance_forecast_time"` // Прогноз оставшегося времени до конечной точки
 	// Прогноз строится в зависимости от наличия информации о конечном пункте назначения и времени прибытия.
@@ -137,7 +137,7 @@ type ObjectPosition struct {
 	Lon       json.Number `json:"lon"`                              // Широта
 	Lat       json.Number `json:"lat"`                              // Долгота
 	Timestamp json.Number `json:"timestamp"`                        // Время
-	Deviation int64       `json:"radius"`                           // Радиус погрешности (м)
+	Deviation json.Number `json:"radius"`                           // Радиус погрешности (м)
 	Place     string      `json:"place"`                            // Населенный пункт местоположения
 	Distance  json.Number `json:"distance,omitempty"`               // Остаток в км до конечной точки
 	ETA       json.Number `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
@@ -169,10 +169,10 @@ type ObjectEvents []ObjectEvent
 // ObjectEvent содержит информацию о событиях, которые происходили с объектом.
 // Такие как: подтверждение трекинга, отклонение трекига, отклонения от маршрута следования и т.д.
 type ObjectEvent struct {
-	EventID   uint64    `json:"id,string"`        // Идентификатор события (возрастающий номер события)
-	Timestamp int64     `json:"timestamp,string"` // Время возникновения события
-	Phone     Object    `json:"phone"`            // Номер телефона абонента, по которому произошло событие
-	Event     EventType `json:"type"`             // Тип события
+	EventID   json.Number `json:"id"`        // Идентификатор события (возрастающий номер события)
+	Timestamp json.Number `json:"timestamp"` // Время возникновения события
+	Phone     Object      `json:"phone"`     // Номер телефона абонента, по которому произошло событие
+	Event     EventType   `json:"type"`      // Тип события
 }
 
 // Список подписок на события
@@ -181,12 +181,12 @@ type SubscribedEvents []SubscribedEvent
 // SubscribedEvent содержит информацию о подписке на одно из событий.
 // ToDo: Обернуть IsAllPhoneSubscribed и IsTelegram в bool
 type SubscribedEvent struct {
-	SubscriptionID       uint64    `json:"id,string"`        // Идентификатор события (возрастающий номер события)
-	IsAllPhoneSubscribed int       `json:"phones_all"`       // Уведомление о событии для всех объектов (в том числе добавляемых в будущем)
-	PhonesSubscribed     []Object  `json:"phones"`           // Список телефонов (объектов)
-	Timestamp            int64     `json:"timestamp,string"` // Время возникновения события
-	Event                EventType `json:"type"`             // Тип события, на которые зарегистрирована подписка
-	PhoneSubscribed      Object    `json:"phone"`            // Номер телефона абонента, по которому отправляются уведомления
-	EMail                string    `json:"email"`            // Email, по которому отправляются уведомления
-	IsTelegram           int       `json:"telegram"`         // Уведомления отправляются на аккаунт telegram указанный в настройках аккаунта
+	SubscriptionID       json.Number `json:"id"`         // Идентификатор события (возрастающий номер события)
+	IsAllPhoneSubscribed int         `json:"phones_all"` // Уведомление о событии для всех объектов (в том числе добавляемых в будущем)
+	PhonesSubscribed     []Object    `json:"phones"`     // Список телефонов (объектов)
+	Timestamp            json.Number `json:"timestamp"`  // Время возникновения события
+	Event                EventType   `json:"type"`       // Тип события, на которые зарегистрирована подписка
+	PhoneSubscribed      Object      `json:"phone"`      // Номер телефона абонента, по которому отправляются уведомления
+	EMail                string      `json:"email"`      // Email, по которому отправляются уведомления
+	IsTelegram           int         `json:"telegram"`   // Уведомления отправляются на аккаунт telegram указанный в настройках аккаунта
 }

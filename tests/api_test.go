@@ -71,7 +71,7 @@ func TestGetBalance(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err != nil || b.Balance == 0.0 {
+	if v, err := b.Balance.Float64(); err != nil || v == 0.0 {
 		t.Fatal("balance action cannot be parsed")
 	}
 	// mts, megafon, beeline, tele2, eventsms, autoinform
@@ -275,7 +275,7 @@ func TestGetEvents(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err != nil || !(e[0].Timestamp != 0) {
+	if v, err := e[0].Timestamp.Float64(); err != nil || v == 0.0 {
 		t.Fatal("events action cannot be parsed")
 	}
 }
@@ -305,7 +305,7 @@ func TestGetEventSubscriptions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err != nil || !(e[0].Timestamp != 0) {
+	if v, err := e[0].Timestamp.Float64(); err != nil || v == 0.0 {
 		t.Fatal("events_subscribe_list action cannot be parsed")
 	}
 }
