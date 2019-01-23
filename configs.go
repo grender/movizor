@@ -46,3 +46,62 @@ const (
 	StatusTrackCollision     Status = "error_exists" // Номер отслеживается другой компанией у оператора
 	StatusTrackingIsOff      Status = "limited"      // У абонента ограничение на подключение к услуге
 )
+
+type ETAStatus string
+
+const (
+	NoETAStatus       ETAStatus = ""         // статус не указан
+	OkETAStatus       ETAStatus = "ok"       // успевает
+	LateETAStatus     ETAStatus = "late"     // опаздывает
+	FinishedETAStatus ETAStatus = "finished" // прибыл
+)
+
+type EventType string
+
+const (
+	AddEvent                    EventType = "add"             // - добавлен объект
+	AutoOffEvent                EventType = "auto_off"        // - автоматическое отключение
+	OffEvent                    EventType = "off"             // - отключение
+	ConfirmEvent                EventType = "confirm"         // - объект подтвердил подключение
+	RejectEvent                 EventType = "reject"          // - объект отказался от подключения
+	RequestOkEvent              EventType = "request"         // - запрос: успешно
+	RequestErrorEvent           EventType = "request_error"   // - запрос: ошибка
+	RequestObjectOfflineEvent   EventType = "request_offline" // - запрос: телефон недоступен
+	RequestObjectInRoamingEvent EventType = "request_roaming" // - запрос: телефон в роуминге
+	ReactivateEvent             EventType = "reactivate"      // - повторное подключение
+	ChangeTariffEvent           EventType = "tariff_auto"     // - смена тарифного плана
+	InTimeEvent                 EventType = "pos_ok"          // - объект начал успевать
+	LateEvent                   EventType = "pos_late"        // - объект начал опаздывать
+	FinishedEvent               EventType = "pos_finished"    // - объект прибывает
+	CallToDriverEvent           EventType = "autoinform"      // - автоинформатор
+	NoConfirmationEvent         EventType = "no_confirm"      // - объект не подтвердил подключение
+	ObjectLimitedEvent          EventType = "limit"           // - у объекта стоит ограничение
+	OnRouteEvent                EventType = "onroute"         // - встал на маршрут
+	ReturnRouteEvent            EventType = "returnroute"     // - вернулся на маршрут
+	LeftRouteEvent              EventType = "leftroute"       // - отклонился от маршрута
+	NotRouteEvent               EventType = "notroute"        // - не на маршруте
+	OnParkingEvent              EventType = "onparking"       // - встал на парковку
+	OffParkingEvent             EventType = "offparking"      // - начал движение
+	MStopEvent                  EventType = "mstop"           // - приложение остановлено
+	MStartEvent                 EventType = "mstart"          // - приложение запущено
+)
+
+type NotificationType string
+
+const (
+	SMSNotification      NotificationType = "sms"
+	EMailNotification    NotificationType = "email"
+	TelegramNotification NotificationType = "telegram"
+)
+
+//type Weekday uint8
+//
+//const (
+//	Monday Weekday = 1
+//	Tuesday
+//	Wednesday
+//	Thursday
+//	Friday
+//	Saturday
+//	Sunday
+//)

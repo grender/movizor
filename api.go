@@ -9,9 +9,10 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
-// API gives a set of interfaces to Movizor service API
+// API - это клиент к API Мовизора. Сервиса определения гео-координат по GSM.
 type API struct {
 	Endpoint string
 	Project  string
@@ -232,35 +233,7 @@ func (api *API) GetObjectPositions() (ObjectPositions, error) {
 	return op, nil
 }
 
-//func (api *API) GetObjectPositionsChan(sleep time.Duration) (ObjectPositionsChannel, error) {
-//	ch := make(chan ObjectPosition, api.Buffer)
-//
-//	go func() {
-//		for {
-//			select {
-//			case <-api.shutdownChannel:
-//				return
-//			default:
-//			}
-//
-//			positions, err := api.GetObjectPositions()
-//			if err != nil {
-//				log.Println(err)
-//				log.Println("failed to get object positions")
-//
-//				continue
-//			}
-//
-//			for _, pos := range positions {
-//				ch <- pos
-//			}
-//			time.Sleep(sleep)
-//		}
-//	}()
-//
-//	return ch, nil
-//}
-
+// GetOperatorInfo возвращает информацию по оператору объекта трекинга (номеру телефона)
 func (api *API) GetOperatorInfo(o Object) (OperatorInfo, error) {
 	resp, err := api.MakeRequest("get_operator", o.values())
 	if err != nil {
@@ -274,4 +247,63 @@ func (api *API) GetOperatorInfo(o Object) (OperatorInfo, error) {
 	}
 
 	return oi, nil
+}
+
+// GetEvents получает список событий, с возможностью определить с какого id события выводить данные.
+func (api *API) GetEvents(o ObjectEventsOptions) (ObjectEvents, error) {
+	resp, err := api.MakeRequest("events", o.values())
+	if err != nil {
+		return ObjectEvents{}, err
+	}
+
+	var oe ObjectEvents
+	err = json.Unmarshal(resp.Data, &oe)
+	if err != nil {
+		return ObjectEvents{}, err
+	}
+
+	return oe, nil
+}
+
+// DeleteEventsSubscription удаляет подписку по ее id. Для получения id используйте GetEventSubscriptions.
+func (api *API) DeleteEventsSubscription(id uint64) (APIResponse, error) {
+	v := url.Values{}
+	v.Add("id", strconv.FormatUint(id, 10))
+	resp, err := api.MakeRequest("events_subscribe_delete", v)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
+}
+
+// GetEventSubscriptions получает список подписок активных на текущий момент.
+func (api *API) GetEventSubscriptions() (SubscribedEvents, error) {
+	resp, err := api.MakeRequest("events_subscribe_list", nil)
+	if err != nil {
+		return SubscribedEvents{}, err
+	}
+
+	var se SubscribedEvents
+	err = json.Unmarshal(resp.Data, &se)
+	if err != nil {
+		return SubscribedEvents{}, err
+	}
+
+	return se, nil
+}
+
+// SubscribeEvent выполняет подписку на указанное тип события для всех объектов (телефонов) или по списку.
+func (api *API) SubscribeEvent(o SubscribeEventOptions) (APIResponse, error) {
+	v, err := o.values()
+	if err != nil {
+		return APIResponse{}, err
+	}
+
+	resp, err := api.MakeRequest("events_subscribe_add", v)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
 }

@@ -71,7 +71,7 @@ func TestGetBalance(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if f, err := b.Balance.Float64(); err != nil || f == 0.0 {
+	if err != nil || b.Balance == 0.0 {
 		t.Fatal("balance action cannot be parsed")
 	}
 	// mts, megafon, beeline, tele2, eventsms, autoinform
@@ -258,5 +258,52 @@ func TestGetOperatorInfo(t *testing.T) {
 		o.Operator == movizor.OperatorBeeline ||
 		o.Operator == movizor.OperatorTele2) {
 		t.Fatal("get_operator action cannot be parsed")
+	}
+}
+
+func TestGetEvents(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsDebug = testLogging
+
+	e, err := api.GetEvents(movizor.ObjectEventsOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err != nil || !(e[0].Timestamp != 0) {
+		t.Fatal("events action cannot be parsed")
+	}
+}
+
+func TestDeleteEventsSubscription(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsDebug = testLogging
+
+	resp, err := api.DeleteEventsSubscription(5027)
+	if err != nil {
+		t.Fatalf("events_subscribe_delete returned error: %s", resp.ErrorText)
+	}
+}
+
+func TestGetEventSubscriptions(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsDebug = testLogging
+
+	e, err := api.GetEventSubscriptions()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err != nil || !(e[0].Timestamp != 0) {
+		t.Fatal("events_subscribe_list action cannot be parsed")
 	}
 }

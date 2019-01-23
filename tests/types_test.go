@@ -50,7 +50,8 @@ func TestBalanceDataUnmarshal(t *testing.T) {
 	var bd movizor.Balance
 	err = json.Unmarshal(d, &bd)
 
-	if _, ok := bd.TariffPlans["mts"]; err != nil || !ok {
+	if _, ok := bd.TariffPlans["mts"]; err != nil || !ok ||
+		bd.Balance != 476.50 {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.Balance{}, err)
 	}
 }
@@ -109,7 +110,7 @@ func TestObjectInfoUnmarshal(t *testing.T) {
 
 	var oi movizor.ObjectInfo
 	err = json.Unmarshal(d, &oi)
-
+	// ToDo: Проверить все виды статусов, а также парсинг ETAStatus
 	if err != nil ||
 		!(oi.Status == movizor.StatusOff || oi.Status == movizor.StatusOk) {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.ObjectInfo{}, err)
@@ -121,5 +122,64 @@ func TestObjectString(t *testing.T) {
 
 	if v.String() != "74567654357" {
 		t.Fatalf("Object: %s cannot be clean properly", v)
+	}
+}
+
+func TestObjectEventsUnmarshal(t *testing.T) {
+	d, err := ioutil.ReadFile(filepath.Join(dataPath, "events.json"))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	var e movizor.ObjectEvents
+	err = json.Unmarshal(d, &e)
+
+	if err != nil || !(e[0].Timestamp == 1548076000 || e[0].EventID == 35425471) {
+		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.ObjectEvents{}, err)
+	}
+
+	for _, v := range e {
+		if !(v.Event == movizor.AddEvent ||
+			v.Event == movizor.AutoOffEvent ||
+			v.Event == movizor.OffEvent ||
+			v.Event == movizor.RequestOkEvent ||
+			v.Event == movizor.RequestErrorEvent ||
+			v.Event == movizor.ConfirmEvent ||
+			v.Event == movizor.RejectEvent ||
+			v.Event == movizor.RequestObjectOfflineEvent ||
+			v.Event == movizor.RequestObjectInRoamingEvent ||
+			v.Event == movizor.ReactivateEvent ||
+			v.Event == movizor.ChangeTariffEvent ||
+			v.Event == movizor.InTimeEvent ||
+			v.Event == movizor.LateEvent ||
+			v.Event == movizor.FinishedEvent ||
+			v.Event == movizor.CallToDriverEvent ||
+			v.Event == movizor.NoConfirmationEvent ||
+			v.Event == movizor.ObjectLimitedEvent ||
+			v.Event == movizor.OnRouteEvent ||
+			v.Event == movizor.ReturnRouteEvent ||
+			v.Event == movizor.LeftRouteEvent ||
+			v.Event == movizor.NotRouteEvent ||
+			v.Event == movizor.OnParkingEvent ||
+			v.Event == movizor.OffParkingEvent ||
+			v.Event == movizor.MStopEvent ||
+			v.Event == movizor.MStartEvent) {
+			t.Fatalf("Something wen wrong with %T", movizor.ObjectEvents{})
+		}
+	}
+}
+
+func TestSubscribedEventsUnmarshal(t *testing.T) {
+	d, err := ioutil.ReadFile(filepath.Join(dataPath, "events_subscribe_list.json"))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	var se movizor.SubscribedEvents
+	err = json.Unmarshal(d, &se)
+
+	if err != nil ||
+		!(se[0].Timestamp == 1548084632 || se[0].Event != movizor.RejectEvent) {
+		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.SubscribedEvents{}, err)
 	}
 }
