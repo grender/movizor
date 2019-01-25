@@ -56,17 +56,17 @@ func TestBalanceDataUnmarshal(t *testing.T) {
 	}
 }
 
-func TestObjectLastPositionUnmarshal(t *testing.T) {
+func TestPositionUnmarshal(t *testing.T) {
 	d1, err := ioutil.ReadFile(filepath.Join(dataPath, "pos_last1.json"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
 
-	var lp movizor.ObjectLastPosition
+	var lp movizor.Position
 	err = json.Unmarshal(d1, &lp)
 
 	if err != nil || lp.ETAStatus != movizor.NoETAStatus {
-		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d1, movizor.ObjectLastPosition{}, err)
+		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d1, movizor.Position{}, err)
 	}
 
 	d2, err := ioutil.ReadFile(filepath.Join(dataPath, "pos_last2.json"))
@@ -77,9 +77,27 @@ func TestObjectLastPositionUnmarshal(t *testing.T) {
 	err = json.Unmarshal(d2, &lp)
 
 	if err != nil || lp.ETAStatus != movizor.NoETAStatus {
-		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d2, movizor.ObjectLastPosition{}, err)
+		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d2, movizor.Position{}, err)
 	}
 
+}
+
+func TestPositionsUnmarshal(t *testing.T) {
+	d, err := ioutil.ReadFile(filepath.Join(dataPath, "pos_list.json"))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	var p movizor.Positions
+	err = json.Unmarshal(d, &p)
+
+	if err != nil {
+		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.Positions{}, err)
+	}
+
+	if p[0].ETAStatus != movizor.NoETAStatus {
+		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.Positions{}, err)
+	}
 }
 
 func TestObjectsUnmarshal(t *testing.T) {

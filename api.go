@@ -226,24 +226,82 @@ func (api *API) CancelTariffChangeObject(o Object) (APIResponse, error) {
 	return resp, nil
 }
 
-// ObjectLastPosition возвращает информацию о последнем зафиксированном в системе местоположении.
-func (api *API) GetObjectLastPosition(o Object) (ObjectLastPosition, error) {
+// GetObjectLastPosition возвращает информацию о последнем зафиксированном в системе местоположении.
+func (api *API) GetObjectLastPosition(o Object) (Position, error) {
 	resp, err := api.MakeRequest("pos_last", o.values())
 	if err != nil {
-		return ObjectLastPosition{}, err
+		return Position{}, err
 	}
 
-	var lp ObjectLastPosition
+	var lp Position
 	err = json.Unmarshal(resp.Data, &lp)
 	if err != nil {
-		return ObjectLastPosition{}, err
+		return Position{}, err
 	}
 
 	return lp, nil
 }
 
+// GetObjectPositions возвращает информацию о всех координатах абонента.
+// По умолчанию выдаются последние 1000 записей.
+func (api *API) GetObjectPositions(o Object, rpo *RequestPositionsOptions) (Positions, error) {
+	v := o.values()
+	if rpo != nil {
+		err := rpo.addValuesTo(&v)
+		if err != nil {
+			return Positions{}, err
+		}
+	}
+	resp, err := api.MakeRequest("pos_list", v)
+	if err != nil {
+		return Positions{}, err
+	}
+
+	var op Positions
+	err = json.Unmarshal(resp.Data, &op)
+	if err != nil {
+		return Positions{}, err
+	}
+
+	return op, nil
+}
+
+// RequestPosition выполняет запрос на определение местоположения.
+// Используется для определения координат вручную (TariffManual).
+// Однако можно использовать и с другими тарифами.
+func (api *API) RequestPosition(o Object) (PositionRequest, error) {
+	resp, err := api.MakeRequest("pos_request", o.values())
+	if err != nil {
+		return PositionRequest{}, err
+	}
+
+	var pr PositionRequest
+	err = json.Unmarshal(resp.Data, &pr)
+	if err != nil {
+		return PositionRequest{}, err
+	}
+
+	return pr, nil
+}
+
+// GetRequestedPosition получает информацию о сделанном запросе на определение местоположения по его идентификатору.
+func (api *API) GetRequestedPosition(pr PositionRequest) (Position, error) {
+	resp, err := api.MakeRequest("pos_get", pr.values())
+	if err != nil {
+		return Position{}, err
+	}
+
+	var p Position
+	err = json.Unmarshal(resp.Data, &p)
+	if err != nil {
+		return Position{}, err
+	}
+
+	return p, nil
+}
+
 // GetObjectPositions returns slice of objects with its positions and ETA
-func (api *API) GetObjectPositions() (ObjectPositions, error) {
+func (api *API) GetObjectsPositions() (ObjectPositions, error) {
 	resp, err := api.MakeRequest("pos_objects", nil)
 	if err != nil {
 		return ObjectPositions{}, err

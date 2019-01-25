@@ -1,8 +1,10 @@
 package tests
 
 import (
+	"fmt"
 	"oboz/movizor"
 	"testing"
+	"time"
 )
 
 const (
@@ -108,7 +110,7 @@ func TestGetObjectInfo(t *testing.T) {
 	}
 	api.IsDebug = testLogging
 
-	o, err := api.GetObjectInfo("+7 963 654 5272")
+	o, err := api.GetObjectInfo("+7 915 454 6777")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -216,13 +218,59 @@ func TestGetObjectPositions(t *testing.T) {
 	}
 	api.IsDebug = testLogging
 
-	op, err := api.GetObjectPositions()
+	op, err := api.GetObjectPositions("79154546777", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(op) != 0 {
+		if v, err := op[0].Lat.Float64(); err != nil || v == 0.0 {
+			t.Fatal("pos_objects action cannot be parsed")
+		}
+	}
+}
+
+func TestGetObjectsPositions(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsDebug = testLogging
+
+	op, err := api.GetObjectsPositions()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if v, err := op[0].Lat.Float64(); err != nil || v == 0.0 {
 		t.Fatal("pos_objects action cannot be parsed")
+	}
+	fmt.Println(op[0].LastTimeUpdated())
+}
+
+func TestRequestPositions(t *testing.T) {
+	api, err := movizor.NewMovizorAPI(project, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api.IsDebug = testLogging
+
+	id, err := api.RequestPosition("79154546777")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 10; i++ {
+		p, err := api.GetRequestedPosition(id)
+		if err != nil {
+			time.Sleep(time.Minute)
+			continue
+		}
+		fmt.Println(p)
+		break
+	}
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 

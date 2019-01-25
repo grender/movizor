@@ -117,7 +117,7 @@ func (s *SchedulingOptions) addValuesTo(v *url.Values) error {
 	}
 
 	if v == nil {
-		v = new(url.Values)
+		return errors.New("trying to add to nothing")
 	}
 
 	// sw1 string Включить расписание на понедельник
@@ -195,10 +195,34 @@ func (o *ObjectOptions) addValuesTo(v *url.Values) {
 //type ObjectAddOptions struct {
 //	// account integer Идентификатор аккаунта подчинённого кабинета в который добавляется объект.
 //}
+
 //
-//type ObjectEditOptions struct {
-//	// activate string Сразу активировать новый тариф
-//}
+type RequestPositionsOptions struct {
+	RequestLimit uint64    // req_limit - Разрешить делать не более X запросов в сутки на определение координат всех объектов
+	Offset       uint64    // offset - Смещение количества получаемых координат
+	TimeFrom     time.Time // date_start - Unix Timestamp. Фильтрация вывода, начиная с этой даты
+	TimeTo       time.Time // date_end - Unix Timestamp. Фильтрация вывода, до этой даты
+}
+
+func (rpo *RequestPositionsOptions) addValuesTo(v *url.Values) error {
+	if v == nil {
+		return errors.New("trying to add to nothing")
+	}
+	if rpo.RequestLimit != 0 {
+		v.Add("req_limit", strconv.FormatUint(rpo.RequestLimit, 10))
+	}
+	if rpo.Offset != 0 {
+		v.Add("offset", strconv.FormatUint(rpo.Offset, 10))
+	}
+	if !rpo.TimeFrom.IsZero() {
+		v.Add("date_start", strconv.FormatInt(rpo.TimeFrom.Unix(), 10))
+	}
+	if !rpo.TimeTo.IsZero() {
+		v.Add("date_end", strconv.FormatInt(rpo.TimeTo.Unix(), 10))
+	}
+
+	return nil
+}
 
 // ObjectEventsOptions предоставляет опции для GetEvents.
 type ObjectEventsOptions struct {

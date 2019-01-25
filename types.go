@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/url"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -111,21 +112,30 @@ type ObjectStatus struct {
 	Status Status `json:"status"` // Статус добавления для отслеживания
 }
 
+// Список местоположений
+type Positions []Position
+
 // Информация о последнем зафиксированном в системе местоположении
-type ObjectLastPosition struct {
-	Lon              json.Number `json:"lon"`                    // Долгота
-	Lat              json.Number `json:"lat"`                    // Широта
-	Timestamp        json.Number `json:"timestamp"`              // Время получения координат для этой точки
-	TimestampRequest json.Number `json:"timestamp_request"`      // Время создания запроса на получение координат
-	Deviation        json.Number `json:"radius"`                 // Радиус погрешности (м)
-	Distance         json.Number `json:"distance"`               // Остаток в км до конечной точки
-	ETA              json.Number `json:"distance_forecast_time"` // Прогноз оставшегося времени до конечной точки
+type Position struct {
+	Lon              json.Number `json:"lon"`                              // Долгота
+	Lat              json.Number `json:"lat"`                              // Широта
+	Timestamp        json.Number `json:"timestamp"`                        // Время получения координат для этой точки
+	TimestampRequest json.Number `json:"timestamp_request,omitempty"`      // Время создания запроса на получение координат
+	Deviation        json.Number `json:"radius"`                           // Радиус погрешности (м)
+	Distance         json.Number `json:"distance"`                         // Остаток в км до конечной точки
+	ETA              json.Number `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
 	// Прогноз строится в зависимости от наличия информации о конечном пункте назначения и времени прибытия.
 	// Если этой информации нет, значения элементов будут пустыми.
-	ETAStatus ETAStatus `json:"distance_forecast_status"` // Прогноз успеваемости до конечной точки.
+	ETAStatus ETAStatus `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки.
 	// Прогноз строится в зависимости от наличия информации о конечном пункте назначения и времени прибытия.
 	// Если этой информации нет, значения элементов будут пустыми.
 	Place string `json:"place"` // Населенный пункт местоположения.
+}
+
+// LastTimeUpdated возвращает время последнего обновления координат в time.
+func (p *Position) LastTimeUpdated() time.Time {
+	v, _ := p.Timestamp.Int64()
+	return time.Unix(v, 0)
 }
 
 // Список объектов с координатами, последним временем обновления координат, текущим местонахождением и ETA.
@@ -154,6 +164,14 @@ type ObjectPosition struct {
 func (op *ObjectPosition) LastTimeUpdated() time.Time {
 	v, _ := op.Timestamp.Int64()
 	return time.Unix(v, 0)
+}
+
+type PositionRequest struct {
+	RequestID uint64 `json:"request_id"`
+}
+
+func (pr PositionRequest) values() url.Values {
+	return url.Values{"id": {strconv.FormatUint(pr.RequestID, 10)}}
 }
 
 // Информация по сотовому оператору
