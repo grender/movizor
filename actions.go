@@ -12,14 +12,32 @@ import (
 
 // Destinations array [string] массив конечных точек маршрута.
 // Передается в многомерном массиве, каждый вложенный массив обозначает одну конечную (или промежуточную) точку:
-// destination[0] = array(text = Казань, // название пункта coord = 55.760419,49.190294, // координаты (lat,lon) time = 10.05.2016 18:00, // дата и время прибытия (dd.mm.yyyy hh:mm);
-// destination[1] = array(text = Москва, coord = 55.7098009,37.0536908, time = 12.05.2016 18:00,);
-//type DestinationOptions struct {
-//	Text         string
-//	Lon          float32
-//	Lat          float32
-//	ExpectedTime time.Time
-//}
+// destination[0][text]=Москва
+// destination[0][coord]=55.7098009,37.0536908,
+// destination[0][time]=26.01.2019 18:00
+type DestinationOptions struct {
+	Text         string
+	Lon          float32
+	Lat          float32
+	ExpectedTime time.Time
+}
+
+func (do DestinationOptions) addValuesTo(idx int, v *url.Values) error {
+	if v == nil {
+		return errors.New("trying to add to nothing")
+	}
+	if do.Text == "" {
+		return errors.New("option Text is not provided")
+	}
+
+	v.Add(fmt.Sprintf("destination[%d][text]", idx), do.Text)
+	v.Add(fmt.Sprintf("destination[%d][coord]", idx), fmt.Sprintf("%.8f,%.8f", do.Lat, do.Lon))
+	if !do.ExpectedTime.IsZero() {
+		v.Add(fmt.Sprintf("destination[%d][time]", idx), do.ExpectedTime.Format("02.01.2006 15:04"))
+	}
+
+	return nil
+}
 
 // Расписание запросов на определение координат объекта
 type SchedulingOptions struct {
@@ -147,20 +165,20 @@ func (s *SchedulingOptions) addValuesTo(v *url.Values) error {
 
 // ObjectOptions предоставляет опции для AddObject (add_object) и EditObject (edit_object)
 type ObjectOptions struct {
-	Title          string     //title - Название объекта
-	Tags           []string   //tags - Список меток через запятую
-	DateOff        time.Time  //dateoff - Дата и время автоматического отключения абонента (dd.mm.yyyy hh:mm:ss)
-	Tariff         TariffType //tariff - Id-тарифного плана
-	PackageProlong bool       //package_prolong - Автоматически продлевать пакет (при использовании пакетного тарифа)
-	//Destinations   []DestinationOptions // destination[] - массив конечных точек маршрута.
-	Schedules    SchedulingOptions
-	Metadata     map[string]string // metadata Массив с дополнительной информацией по объекту для отображения в событиях и отчетах.
-	CallToDriver bool              // autoinform integer Включить услугу автоинформатора.
+	Title          string               //title - Название объекта
+	Tags           []string             //tags - Список меток через запятую
+	DateOff        time.Time            //dateoff - Дата и время автоматического отключения абонента (dd.mm.yyyy hh:mm:ss)
+	Tariff         TariffType           //tariff - Id-тарифного плана
+	PackageProlong bool                 //package_prolong - Автоматически продлевать пакет (при использовании пакетного тарифа)
+	Destinations   []DestinationOptions // destination[] - массив конечных точек маршрута.
+	Schedules      *SchedulingOptions   // рассписание для ручного обновления координат
+	Metadata       map[string]string    // metadata Массив с дополнительной информацией по объекту для отображения в событиях и отчетах.
+	CallToDriver   bool                 // autoinform integer Включить услугу автоинформатора.
 }
 
-func (o *ObjectOptions) addValuesTo(v *url.Values) {
+func (o *ObjectOptions) addValuesTo(v *url.Values) error {
 	if v == nil {
-		v = new(url.Values)
+		return errors.New("trying to add to nothing")
 	}
 	if o.Title != "" {
 		v.Add("title", o.Title)
@@ -186,10 +204,22 @@ func (o *ObjectOptions) addValuesTo(v *url.Values) {
 	if o.CallToDriver {
 		v.Add("autoinform", "1")
 	}
-	// ToDo:добавить обработку ошибки
-	_ = o.Schedules.addValuesTo(v)
 
-	return
+	if o.Schedules != nil {
+		err := o.Schedules.addValuesTo(v)
+		if err != nil {
+			return err
+		}
+	}
+
+	for key, val := range o.Destinations {
+		err := val.addValuesTo(key, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 //type ObjectAddOptions struct {

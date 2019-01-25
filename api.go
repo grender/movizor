@@ -133,9 +133,19 @@ func (api *API) GetBalance() (Balance, error) {
 
 // AddObject подключает абонента к мониторингу.
 func (api *API) AddObject(o Object, oo *ObjectOptions) (APIResponse, error) {
+	return api.AddObjectToSlave(o, oo, 0)
+}
+
+func (api *API) AddObjectToSlave(o Object, oo *ObjectOptions, slaveID uint64) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
-		oo.addValuesTo(&v)
+		if err := oo.addValuesTo(&v); err != nil {
+			return APIResponse{}, err
+		}
+	}
+
+	if slaveID != 0 {
+		v.Add("account", strconv.FormatUint(slaveID, 10))
 	}
 
 	resp, err := api.MakeRequest("object_add", v)
@@ -163,11 +173,19 @@ func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
 }
 
 // Редактирование опций мониторинга ранее добавленного абонента.
-// ToDo: добавить опцию немедленно перехода на новый тариф activate
 func (api *API) EditObject(o Object, oo *ObjectOptions) (APIResponse, error) {
+	return api.EditObjectWithActivate(o, oo, false)
+}
+
+// Редактирование опций мониторинга ранее добавленного абонента с опцией активацией сразу или на следующие сутки.
+func (api *API) EditObjectWithActivate(o Object, oo *ObjectOptions, activate bool) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
 		oo.addValuesTo(&v)
+	}
+
+	if activate {
+		v.Add("activate", "1")
 	}
 
 	resp, err := api.MakeRequest("object_edit", v)
