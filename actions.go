@@ -282,6 +282,13 @@ type SubscribeEventOptions struct {
 	email      string
 }
 
+func NewSubscribeEventOptions(o Object, e EventType) SubscribeEventOptions {
+	return SubscribeEventOptions{
+		Objects: []Object{o},
+		Event:   e,
+	}
+}
+
 // SetSMSNotification устанавливает нотификацию на указанный телефон по СМС. Работает только та нотификация,
 // которая была установлена последней в данной подписке. Это особенности API Movizor.
 func (se *SubscribeEventOptions) SetSMSNotification(phone Object) error {
