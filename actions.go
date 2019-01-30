@@ -271,20 +271,20 @@ func (eo ObjectEventsOptions) values() url.Values {
 	return v
 }
 
-// SubscribeEventOptions предоставляет опции подписки на ноификацию по событиям. Если установлен признак AllPhones,
-// то список Phones игнорируется.
+// SubscribeEventOptions предоставляет опции подписки на ноификацию по событиям. Если установлен признак AllObjects,
+// то список Objects игнорируется.
 type SubscribeEventOptions struct {
-	AllPhones bool
-	Phones    []Object
-	Event     EventType
-	notifyTo  NotificationType
-	smsPhone  Object
-	email     string
+	AllObjects bool
+	Objects    []Object
+	Event      EventType
+	notifyTo   NotificationType
+	smsPhone   Object
+	email      string
 }
 
 // SetSMSNotification устанавливает нотификацию на указанный телефон по СМС. Работает только та нотификация,
 // которая была установлена последней в данной подписке. Это особенности API Movizor.
-func (se SubscribeEventOptions) SetSMSNotification(phone Object) error {
+func (se *SubscribeEventOptions) SetSMSNotification(phone Object) error {
 	se.notifyTo = SMSNotification
 	// ToDo: Переписать на что-то более надежное
 	if phone.String() == "" {
@@ -297,7 +297,7 @@ func (se SubscribeEventOptions) SetSMSNotification(phone Object) error {
 
 // SetEMailNotification устанавливает нотификацию на указанный почтовый адрес. Работает только та нотификация,
 // которая была установлена последней в данной подписке. Это особенности API Movizor.
-func (se SubscribeEventOptions) SetEMailNotification(mail string) error {
+func (se *SubscribeEventOptions) SetEMailNotification(mail string) error {
 	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 	if !re.MatchString(mail) {
 		return fmt.Errorf("%s is not valid email address", mail)
@@ -309,12 +309,12 @@ func (se SubscribeEventOptions) SetEMailNotification(mail string) error {
 
 // SetTelegramNotification устанавливает нотификацию на Телеграм указанные в профиле держателя аккаута.
 // Работает только та нотификация, которая была установлена последней в данной подписке. Это особенности API Movizor.
-func (se SubscribeEventOptions) SetTelegramNotification() {
+func (se *SubscribeEventOptions) SetTelegramNotification() {
 	se.notifyTo = TelegramNotification
 }
 
 func (se SubscribeEventOptions) values() (url.Values, error) {
-	if !se.AllPhones && len(se.Phones) == 0 {
+	if !se.AllObjects && len(se.Objects) == 0 {
 		return url.Values{}, errors.New("no single phone is set to subscribe for event")
 	}
 	if string(se.Event) == "" {
@@ -326,10 +326,10 @@ func (se SubscribeEventOptions) values() (url.Values, error) {
 
 	v := url.Values{}
 
-	if se.AllPhones {
+	if se.AllObjects {
 		v.Add("phones_all", "1")
 	} else {
-		for _, val := range se.Phones {
+		for _, val := range se.Objects {
 			v.Add("phones[]", val.String())
 
 		}

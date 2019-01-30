@@ -90,7 +90,6 @@ func (oi *ObjectInfo) TimeAdded() time.Time {
 }
 
 // Список точек назначения, которые должен посетить Водитель.
-// ToDo: Протестировать работу
 type Destination struct {
 	Text   string      `json:"text"`
 	Lat    json.Number `json:"lat"`
@@ -98,9 +97,6 @@ type Destination struct {
 	Time   string      `json:"time"`
 	Status ETAStatus   `json:"status"`
 }
-
-// Список объектов с их статусами.
-type ObjectsWithStatus []ObjectStatus
 
 func (os ObjectsWithStatus) Len() int           { return len(os) }
 func (os ObjectsWithStatus) Swap(i, j int)      { os[i], os[j] = os[j], os[i] }
@@ -110,6 +106,18 @@ func (os ObjectsWithStatus) Less(i, j int) bool { return os[i].Phone < os[j].Pho
 type ObjectStatus struct {
 	Phone  Object `json:"phone"`  // Номер телефона абонента
 	Status Status `json:"status"` // Статус добавления для отслеживания
+}
+
+// Список объектов с их статусами.
+type ObjectsWithStatus []ObjectStatus
+
+func (os ObjectsWithStatus) IsObjectIn(o Object) bool {
+	for _, os := range os {
+		if os.Phone == o {
+			return true
+		}
+	}
+	return false
 }
 
 // Список местоположений
@@ -197,14 +205,33 @@ type ObjectEvent struct {
 type SubscribedEvents []SubscribedEvent
 
 // SubscribedEvent содержит информацию о подписке на одно из событий.
-// ToDo: Обернуть IsAllPhoneSubscribed и IsTelegram в bool
+// ToDo: Обернуть IsAllObjectsSubscribed и IsTelegram в bool
 type SubscribedEvent struct {
-	SubscriptionID       json.Number `json:"id"`         // Идентификатор события (возрастающий номер события)
-	IsAllPhoneSubscribed int         `json:"phones_all"` // Уведомление о событии для всех объектов (в том числе добавляемых в будущем)
-	PhonesSubscribed     []Object    `json:"phones"`     // Список телефонов (объектов)
-	Timestamp            json.Number `json:"timestamp"`  // Время возникновения события
-	Event                EventType   `json:"type"`       // Тип события, на которые зарегистрирована подписка
-	PhoneSubscribed      Object      `json:"phone"`      // Номер телефона абонента, по которому отправляются уведомления
-	EMail                string      `json:"email"`      // Email, по которому отправляются уведомления
-	IsTelegram           int         `json:"telegram"`   // Уведомления отправляются на аккаунт telegram указанный в настройках аккаунта
+	SubscriptionID         json.Number `json:"id"`         // Идентификатор события (возрастающий номер события)
+	IsAllObjectsSubscribed int         `json:"phones_all"` // Уведомление о событии для всех объектов (в том числе добавляемых в будущем)
+	ObjectsSubscribed      []Object    `json:"phones"`     // Список телефонов (объектов)
+	Timestamp              json.Number `json:"timestamp"`  // Время возникновения события
+	Event                  EventType   `json:"type"`       // Тип события, на которые зарегистрирована подписка
+	Phone                  Object      `json:"phone"`      // Номер телефона абонента, по которому отправляются уведомления
+	EMail                  string      `json:"email"`      // Email, по которому отправляются уведомления
+	IsTelegram             int         `json:"telegram"`   // Уведомления отправляются на аккаунт telegram указанный в настройках аккаунта
+}
+
+func (se SubscribedEvent) MakeOptions() (seo SubscribeEventOptions, err error) {
+	seo = SubscribeEventOptions{}
+	seo.Event = se.Event
+	if se.IsAllObjectsSubscribed == 1 {
+		seo.AllObjects = true
+	} else {
+		seo.Objects = se.ObjectsSubscribed
+	}
+	switch {
+	case se.Phone.String() != "":
+		err = seo.SetSMSNotification(se.Phone)
+	case se.EMail != "":
+		err = seo.SetEMailNotification(se.EMail)
+	default:
+		seo.SetTelegramNotification()
+	}
+	return
 }

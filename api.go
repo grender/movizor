@@ -181,7 +181,10 @@ func (api *API) EditObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 func (api *API) EditObjectWithActivate(o Object, oo *ObjectOptions, activate bool) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
-		oo.addValuesTo(&v)
+		err := oo.addValuesTo(&v)
+		if err != nil {
+			return APIResponse{}, err
+		}
 	}
 
 	if activate {
@@ -348,63 +351,4 @@ func (api *API) GetOperatorInfo(o Object) (OperatorInfo, error) {
 	}
 
 	return oi, nil
-}
-
-// GetEvents получает список событий, с возможностью определить с какого id события выводить данные.
-func (api *API) GetEvents(o ObjectEventsOptions) (ObjectEvents, error) {
-	resp, err := api.MakeRequest("events", o.values())
-	if err != nil {
-		return ObjectEvents{}, err
-	}
-
-	var oe ObjectEvents
-	err = json.Unmarshal(resp.Data, &oe)
-	if err != nil {
-		return ObjectEvents{}, err
-	}
-
-	return oe, nil
-}
-
-// DeleteEventsSubscription удаляет подписку по ее id. Для получения id используйте GetEventSubscriptions.
-func (api *API) DeleteEventsSubscription(id uint64) (APIResponse, error) {
-	v := url.Values{}
-	v.Add("id", strconv.FormatUint(id, 10))
-	resp, err := api.MakeRequest("events_subscribe_delete", v)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
-}
-
-// GetEventSubscriptions получает список подписок активных на текущий момент.
-func (api *API) GetEventSubscriptions() (SubscribedEvents, error) {
-	resp, err := api.MakeRequest("events_subscribe_list", nil)
-	if err != nil {
-		return SubscribedEvents{}, err
-	}
-
-	var se SubscribedEvents
-	err = json.Unmarshal(resp.Data, &se)
-	if err != nil {
-		return SubscribedEvents{}, err
-	}
-
-	return se, nil
-}
-
-// SubscribeEvent выполняет подписку на указанное тип события для всех объектов (телефонов) или по списку.
-func (api *API) SubscribeEvent(o SubscribeEventOptions) (APIResponse, error) {
-	v, err := o.values()
-	if err != nil {
-		return APIResponse{}, err
-	}
-
-	resp, err := api.MakeRequest("events_subscribe_add", v)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
 }
