@@ -265,6 +265,8 @@ func TestObjectInfo_UnmarshalJSON(t *testing.T) {
 			if err := oi.UnmarshalJSON(tt.args.data); (err != nil) != tt.wantErr {
 				t.Errorf("ObjectInfo.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
+			fmt.Println(oi.Metadata)
 		})
 	}
 }

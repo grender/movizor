@@ -126,43 +126,53 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 
 // Почти полная информация по объекту.
 type ObjectInfo struct {
-	Phone         Object        `json:"phone"`                              // Номер абонента
-	Status        Status        `json:"status"`                             // status type
-	Confirmed     bool          `json:"confirmed"`                          // Получено подтверждение от абонента
-	Title         string        `json:"title"`                              // Имя абонента (название объекта)
-	Tariff        TariffType    `json:"tariff"`                             // Текущий тарифный план
-	TariffNew     *TariffType   `json:"tariff_new,omitempty"`               // Новый тарифный план со следующего дня
-	LastTimestamp Time          `json:"last_timestamp"`                     // Время последнего запроса на определение местоположения
-	AtRequest     bool          `json:"at_request,omitempty"`               // Производится определение местоположения в данный момент
-	CurrentLon    *Coordinate   `json:"current_lon"`                        // Широта последнего местоположения
-	CurrentLat    *Coordinate   `json:"current_lat"`                        // Долгота последнего местоположения
-	Place         string        `json:"place,omitempty"`                    // Населенный пункт последнего местоположения
-	Distance      int64         `json:"distance,omitempty"`                 // Остаток в км до конечной точки
-	ETA           *Time         `json:"distance_forecast_time,omitempty"`   // Прогноз оставшегося времени до конечной точки
-	ETAStatus     *string       `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки
-	OnParking     *bool         `json:"on_parking,omitempty"`
-	Destination   []Destination `json:"destination,omitempty"`
-	OfflineTime   Time          `json:"offline_time,omitempty"` // Время последнего известного местоположения
-	PosError      bool          `json:"pos_error,omitempty"`    // Последнее местоположение не удалось определить
-	TimestampOff  Time          `json:"timestamp_off"`          // Время автоматического отключения от мониторинга
-	TimestampAdd  Time          `json:"timestamp_add"`
-	// ToDo: заменить на map[string]string и протестировать
-	Metadata json.RawMessage `json:"metadata,omitempty"` // Метаинформация объекта, массив
+	Phone         Object            `json:"phone"`                              // Номер абонента
+	Status        Status            `json:"status"`                             // status type
+	Confirmed     bool              `json:"confirmed"`                          // Получено подтверждение от абонента
+	Title         string            `json:"title"`                              // Имя абонента (название объекта)
+	Tariff        TariffType        `json:"tariff"`                             // Текущий тарифный план
+	TariffNew     *TariffType       `json:"tariff_new,omitempty"`               // Новый тарифный план со следующего дня
+	LastTimestamp Time              `json:"last_timestamp"`                     // Время последнего запроса на определение местоположения
+	AtRequest     bool              `json:"at_request,omitempty"`               // Производится определение местоположения в данный момент
+	CurrentLon    *Coordinate       `json:"current_lon"`                        // Широта последнего местоположения
+	CurrentLat    *Coordinate       `json:"current_lat"`                        // Долгота последнего местоположения
+	Place         string            `json:"place,omitempty"`                    // Населенный пункт последнего местоположения
+	Distance      int64             `json:"distance,omitempty"`                 // Остаток в км до конечной точки
+	ETA           *Time             `json:"distance_forecast_time,omitempty"`   // Прогноз оставшегося времени до конечной точки
+	ETAStatus     *string           `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки
+	OnParking     *bool             `json:"on_parking,omitempty"`               // Находится ли объект на парковке
+	Destination   []Destination     `json:"destination,omitempty"`              // Список точек назначения, которые должен посетить Водитель.
+	OfflineTime   Time              `json:"offline_time,omitempty"`             // Время последнего известного местоположения
+	PosError      bool              `json:"pos_error,omitempty"`                // Последнее местоположение не удалось определить
+	TimestampOff  Time              `json:"timestamp_off"`                      // Время автоматического отключения от мониторинга
+	TimestampAdd  Time              `json:"timestamp_add"`                      // Время добавления объекта в Мовизор
+	Metadata      map[string]string `json:"metadata,omitempty"`                 // Метаинформация объекта, массив
 }
 
 func (oi *ObjectInfo) UnmarshalJSON(data []byte) (err error) {
 	type Alias ObjectInfo
 	aux := &struct {
-		Distance json.Number `json:"distance,omitempty"`
+		Distance json.Number     `json:"distance,omitempty"`
+		Metadata json.RawMessage `json:"metadata,omitempty"`
 		*Alias
 	}{
 		Alias: (*Alias)(oi),
 	}
+
 	if err = json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
 
 	if oi.Distance, err = aux.Distance.Int64(); err != nil {
+		return err
+	}
+
+	var probe []interface{}
+	if err = json.Unmarshal(aux.Metadata, &probe); err == nil {
+		return nil
+	}
+
+	if err = json.Unmarshal(aux.Metadata, &oi.Metadata); err != nil {
 		return err
 	}
 
