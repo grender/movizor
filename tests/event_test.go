@@ -12,13 +12,9 @@ func TestGetEvents(t *testing.T) {
 	}
 	api.IsDebug = testLogging
 
-	e, err := api.GetEvents(movizor.ObjectEventsOptions{})
+	_, err = api.GetEvents(movizor.ObjectEventsOptions{})
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if v, err := e[0].Timestamp.Float64(); err != nil || v == 0.0 {
-		t.Fatal("events action cannot be parsed")
 	}
 }
 
@@ -42,13 +38,9 @@ func TestGetEventSubscriptions(t *testing.T) {
 	}
 	api.IsDebug = testLogging
 
-	e, err := api.GetEventSubscriptions()
+	_, err = api.GetEventSubscriptions()
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if v, err := e[0].Timestamp.Float64(); err != nil || v == 0.0 {
-		t.Fatal("events_subscribe_list action cannot be parsed")
 	}
 }
 

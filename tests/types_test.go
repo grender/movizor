@@ -225,11 +225,6 @@ func TestSubscribedEventsUnmarshal(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.SubscribedEvents{}, err)
 	}
-
-	if v, err := se[0].Timestamp.Int64(); err != nil ||
-		!(v == 1548084632 || se[0].Event != movizor.RejectEvent) {
-		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.SubscribedEvents{}, err)
-	}
 }
 
 func TestObjectInfo_UnmarshalJSON(t *testing.T) {
@@ -265,8 +260,6 @@ func TestObjectInfo_UnmarshalJSON(t *testing.T) {
 			if err := oi.UnmarshalJSON(tt.args.data); (err != nil) != tt.wantErr {
 				t.Errorf("ObjectInfo.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
 			}
-
-			fmt.Println(oi.Metadata)
 		})
 	}
 }

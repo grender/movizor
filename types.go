@@ -215,13 +215,13 @@ type Positions []Position
 
 // Информация о последнем зафиксированном в системе местоположении
 type Position struct {
-	Lon              json.Number `json:"lon"`                              // Долгота
-	Lat              json.Number `json:"lat"`                              // Широта
-	Timestamp        json.Number `json:"timestamp"`                        // Время получения координат для этой точки
-	TimestampRequest json.Number `json:"timestamp_request,omitempty"`      // Время создания запроса на получение координат
-	Deviation        json.Number `json:"radius"`                           // Радиус погрешности (м)
-	Distance         json.Number `json:"distance"`                         // Остаток в км до конечной точки
-	ETA              json.Number `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
+	Lon              Coordinate `json:"lon"`                              // Долгота
+	Lat              Coordinate `json:"lat"`                              // Широта
+	Timestamp        Time       `json:"timestamp"`                        // Время получения координат для этой точки
+	TimestampRequest Time       `json:"timestamp_request,omitempty"`      // Время создания запроса на получение координат
+	Deviation        int64      `json:"radius,omitempty"`                 // Радиус погрешности (м)
+	Distance         int64      `json:"distance"`                         // Остаток в км до конечной точки
+	ETA              Time       `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
 	// Прогноз строится в зависимости от наличия информации о конечном пункте назначения и времени прибытия.
 	// Если этой информации нет, значения элементов будут пустыми.
 	ETAStatus ETAStatus `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки.
@@ -230,10 +230,28 @@ type Position struct {
 	Place string `json:"place"` // Населенный пункт местоположения.
 }
 
-// LastTimeUpdated возвращает время последнего обновления координат в time.
-func (p *Position) LastTimeUpdated() time.Time {
-	v, _ := p.Timestamp.Int64()
-	return time.Unix(v, 0)
+func (p *Position) UnmarshalJSON(data []byte) (err error) {
+	type Alias Position
+	aux := &struct {
+		Deviation json.Number `json:"radius"`
+		Distance  json.Number `json:"distance"`
+		*Alias
+	}{
+		Alias: (*Alias)(p),
+	}
+	if err = json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if p.Deviation, err = aux.Deviation.Int64(); err != nil {
+		return err
+	}
+
+	if p.Distance, err = aux.Distance.Int64(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Список объектов с координатами, последним временем обновления координат, текущим местонахождением и ETA.
@@ -244,7 +262,7 @@ type ObjectPosition struct {
 	Phone     Object      `json:"phone"`                            // Номер телефона абонента
 	Lon       json.Number `json:"lon"`                              // Широта
 	Lat       json.Number `json:"lat"`                              // Долгота
-	Timestamp json.Number `json:"timestamp"`                        // Время
+	Timestamp Time        `json:"timestamp"`                        // Время
 	Deviation json.Number `json:"radius"`                           // Радиус погрешности (м)
 	Place     string      `json:"place"`                            // Населенный пункт местоположения
 	Distance  json.Number `json:"distance,omitempty"`               // Остаток в км до конечной точки
@@ -258,18 +276,12 @@ type ObjectPosition struct {
 	// Если этой информации нет, значения элементов будут пустыми.
 }
 
-// LastTimeUpdated возвращает время последнего обновления координат в time.
-func (op *ObjectPosition) LastTimeUpdated() time.Time {
-	v, _ := op.Timestamp.Int64()
-	return time.Unix(v, 0)
-}
-
 type PositionRequest struct {
-	RequestID uint64 `json:"request_id"`
+	RequestID int64 `json:"request_id"`
 }
 
 func (pr PositionRequest) values() url.Values {
-	return url.Values{"id": {strconv.FormatUint(pr.RequestID, 10)}}
+	return url.Values{"id": {strconv.FormatInt(pr.RequestID, 10)}}
 }
 
 // Информация по сотовому оператору
@@ -285,32 +297,79 @@ type ObjectEvents []ObjectEvent
 // ObjectEvent содержит информацию о событиях, которые происходили с объектом.
 // Такие как: подтверждение трекинга, отклонение трекига, отклонения от маршрута следования и т.д.
 type ObjectEvent struct {
-	EventID   json.Number `json:"id"`        // Идентификатор события (возрастающий номер события)
-	Timestamp json.Number `json:"timestamp"` // Время возникновения события
-	Phone     Object      `json:"phone"`     // Номер телефона абонента, по которому произошло событие
-	Event     EventType   `json:"type"`      // Тип события
+	EventID   int64     `json:"id"`        // Идентификатор события (возрастающий номер события)
+	Timestamp Time      `json:"timestamp"` // Время возникновения события
+	Phone     Object    `json:"phone"`     // Номер телефона абонента, по которому произошло событие
+	Event     EventType `json:"type"`      // Тип события
+}
+
+func (oe *ObjectEvent) UnmarshalJSON(data []byte) (err error) {
+	type Alias ObjectEvent
+	aux := &struct {
+		EventID json.Number `json:"id"`
+		*Alias
+	}{
+		Alias: (*Alias)(oe),
+	}
+	if err = json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if oe.EventID, err = aux.EventID.Int64(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Список подписок на события
 type SubscribedEvents []SubscribedEvent
 
 // SubscribedEvent содержит информацию о подписке на одно из событий.
-// ToDo: Обернуть IsAllObjectsSubscribed и IsTelegram в bool
 type SubscribedEvent struct {
-	SubscriptionID         json.Number `json:"id"`         // Идентификатор события (возрастающий номер события)
-	IsAllObjectsSubscribed int         `json:"phones_all"` // Уведомление о событии для всех объектов (в том числе добавляемых в будущем)
-	ObjectsSubscribed      []Object    `json:"phones"`     // Список телефонов (объектов)
-	Timestamp              json.Number `json:"timestamp"`  // Время возникновения события
-	Event                  EventType   `json:"type"`       // Тип события, на которые зарегистрирована подписка
-	Phone                  Object      `json:"phone"`      // Номер телефона абонента, по которому отправляются уведомления
-	EMail                  string      `json:"email"`      // Email, по которому отправляются уведомления
-	IsTelegram             int         `json:"telegram"`   // Уведомления отправляются на аккаунт telegram указанный в настройках аккаунта
+	SubscriptionID         int64     `json:"id"`         // Идентификатор события (возрастающий номер события)
+	IsAllObjectsSubscribed bool      `json:"phones_all"` // Уведомление о событии для всех объектов (в том числе добавляемых в будущем)
+	ObjectsSubscribed      []Object  `json:"phones"`     // Список телефонов (объектов)
+	Timestamp              Time      `json:"timestamp"`  // Время возникновения события
+	Event                  EventType `json:"type"`       // Тип события, на которые зарегистрирована подписка
+	Phone                  Object    `json:"phone"`      // Номер телефона абонента, по которому отправляются уведомления
+	EMail                  string    `json:"email"`      // Email, по которому отправляются уведомления
+	IsTelegram             bool      `json:"telegram"`   // Уведомления отправляются на аккаунт telegram указанный в настройках аккаунта
+}
+
+func (se *SubscribedEvent) UnmarshalJSON(data []byte) (err error) {
+	type Alias SubscribedEvent
+	aux := &struct {
+		SubscriptionID         json.Number `json:"id"`
+		IsAllObjectsSubscribed int         `json:"phones_all"`
+		IsTelegram             int         `json:"telegram"`
+		*Alias
+	}{
+		Alias: (*Alias)(se),
+	}
+	if err = json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if se.SubscriptionID, err = aux.SubscriptionID.Int64(); err != nil {
+		return err
+	}
+
+	if aux.IsAllObjectsSubscribed == 1 {
+		se.IsAllObjectsSubscribed = true
+	}
+
+	if aux.IsTelegram == 1 {
+		se.IsTelegram = true
+	}
+
+	return nil
 }
 
 func (se SubscribedEvent) MakeOptions() (seo SubscribeEventOptions, err error) {
 	seo = SubscribeEventOptions{}
 	seo.Event = se.Event
-	if se.IsAllObjectsSubscribed == 1 {
+	if se.IsAllObjectsSubscribed {
 		seo.AllObjects = true
 	} else {
 		seo.Objects = se.ObjectsSubscribed

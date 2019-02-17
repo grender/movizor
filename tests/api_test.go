@@ -208,13 +208,9 @@ func TestGetObjectLastPosition(t *testing.T) {
 	}
 	api.IsDebug = testLogging
 
-	lp, err := api.GetObjectLastPosition("79154546777")
+	_, err = api.GetObjectLastPosition("79154546777")
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if v, err := lp.Lat.Float64(); err != nil || v == 0.0 {
-		t.Fatal("pos_last action cannot be parsed")
 	}
 }
 
@@ -225,15 +221,9 @@ func TestGetObjectPositions(t *testing.T) {
 	}
 	api.IsDebug = testLogging
 
-	op, err := api.GetObjectPositions("79154546777", nil)
+	_, err = api.GetObjectPositions("79154546777", nil)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if len(op) != 0 {
-		if v, err := op[0].Lat.Float64(); err != nil || v == 0.0 {
-			t.Fatal("pos_objects action cannot be parsed")
-		}
 	}
 }
 
@@ -252,7 +242,6 @@ func TestGetObjectsPositions(t *testing.T) {
 	if v, err := op[0].Lat.Float64(); err != nil || v == 0.0 {
 		t.Fatal("pos_objects action cannot be parsed")
 	}
-	fmt.Println(op[0].LastTimeUpdated())
 }
 
 func TestRequestPositions(t *testing.T) {

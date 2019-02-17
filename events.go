@@ -23,9 +23,9 @@ func (api *API) GetEvents(o ObjectEventsOptions) (ObjectEvents, error) {
 }
 
 // DeleteEventsSubscription удаляет подписку по ее id. Для получения id используйте GetEventSubscriptions.
-func (api *API) DeleteEventsSubscription(id uint64) (APIResponse, error) {
+func (api *API) DeleteEventsSubscription(id int64) (APIResponse, error) {
 	v := url.Values{}
-	v.Add("id", strconv.FormatUint(id, 10))
+	v.Add("id", strconv.FormatInt(id, 10))
 	resp, err := api.MakeRequest("events_subscribe_delete", v)
 	if err != nil {
 		return resp, err
@@ -72,11 +72,7 @@ func (api *API) ClearAllEventSubscriptions() error {
 		return err
 	}
 	for _, e := range events {
-		id, err := e.SubscriptionID.Int64()
-		if err != nil {
-			return err
-		}
-		_, err = api.DeleteEventsSubscription(uint64(id))
+		_, err = api.DeleteEventsSubscription(e.SubscriptionID)
 		if err != nil {
 			return err
 		}
@@ -105,7 +101,7 @@ func (api *API) ClearObjectEventSubscriptions(o Object, eType *EventType) error 
 	}
 
 	for _, e := range events {
-		if e.IsAllObjectsSubscribed == 1 {
+		if e.IsAllObjectsSubscribed {
 			continue
 		}
 
@@ -138,7 +134,7 @@ func (api *API) ClearUnusedSubscriptions() error {
 	}
 
 	for _, e := range events {
-		if e.IsAllObjectsSubscribed == 1 {
+		if e.IsAllObjectsSubscribed {
 			continue
 		}
 
@@ -155,11 +151,7 @@ type shouldRemoveSubscription func(Object, *EventType) bool
 func (api *API) removeObjectSubscriptions(e SubscribedEvent, f shouldRemoveSubscription) error {
 	for i, phone := range e.ObjectsSubscribed {
 		if f(phone, &e.Event) {
-			id, err := e.SubscriptionID.Int64()
-			if err != nil {
-				return err
-			}
-			_, err = api.DeleteEventsSubscription(uint64(id))
+			_, err := api.DeleteEventsSubscription(e.SubscriptionID)
 			if err != nil {
 				return err
 			}
