@@ -231,3 +231,40 @@ func TestSubscribedEventsUnmarshal(t *testing.T) {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.SubscribedEvents{}, err)
 	}
 }
+
+func TestObjectInfo_UnmarshalJSON(t *testing.T) {
+	type args struct {
+		data []byte
+	}
+	tests := []struct {
+		name    string
+		file    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "object_get1",
+			file:    "object_get1.json",
+			wantErr: false,
+		},
+		{
+			name:    "object_get2",
+			file:    "object_get2.json",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oi := &movizor.ObjectInfo{}
+			var err error
+
+			tt.args.data, err = ioutil.ReadFile(filepath.Join(dataPath, tt.file))
+			if err != nil {
+				t.Fatalf("err: %s", err)
+			}
+			if err := oi.UnmarshalJSON(tt.args.data); (err != nil) != tt.wantErr {
+				t.Errorf("ObjectInfo.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
