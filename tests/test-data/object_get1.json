@@ -4,7 +4,7 @@
   "confirmed": true,
   "title": "Объект 4",
   "tariff": "manual",
-  "tariff_new": null,
+  "tariff_new": "15",
   "last_timestamp": "1543525294",
   "at_request": false,
   "current_lon": "37.426606",

@@ -2,7 +2,7 @@ package tests
 
 import (
 	"fmt"
-	"oboz/movizor"
+	"movizor"
 	"testing"
 	"time"
 )
@@ -73,7 +73,7 @@ func TestGetBalance(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if v, err := b.Balance.Float64(); err != nil || v == 0.0 {
+	if b.Balance == 0.0 {
 		t.Fatal("balance action cannot be parsed")
 	}
 	// mts, megafon, beeline, tele2, eventsms, autoinform

@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"oboz/movizor"
+	"movizor"
 	"testing"
 )
 

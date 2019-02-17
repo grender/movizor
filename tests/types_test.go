@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"oboz/movizor"
+	"movizor"
 	"path/filepath"
 	"testing"
 )
@@ -51,7 +51,7 @@ func TestBalanceDataUnmarshal(t *testing.T) {
 	var bd movizor.Balance
 	err = json.Unmarshal(d, &bd)
 
-	if _, ok := bd.TariffPlans["mts"]; err != nil || !ok {
+	if _, ok := bd.TariffPlans["mts"]; err != nil || !ok || bd.Balance != 476.50 || bd.Credit != 0.0 {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.Balance{}, err)
 	}
 }
@@ -148,7 +148,7 @@ func TestOperatorInfoUnmarshal(t *testing.T) {
 }
 
 func TestObjectInfoUnmarshal(t *testing.T) {
-	d, err := ioutil.ReadFile(filepath.Join(dataPath, "object_get.json"))
+	d, err := ioutil.ReadFile(filepath.Join(dataPath, "object_get1.json"))
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

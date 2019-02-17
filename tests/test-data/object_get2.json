@@ -1,0 +1,47 @@
+{
+  "phone": "79154546777",
+  "status": "no_confirmed",
+  "confirmed": false,
+  "title": "truck: H848CX174 trip:54198-1, order:тест Николай 1502-4",
+  "tariff": "15",
+  "tariff_new": null,
+  "last_timestamp": 0,
+  "at_request": false,
+  "current_lon": null,
+  "current_lat": null,
+  "place": "",
+  "distance": 0,
+  "distance_forecast_time": null,
+  "distance_forecast_status": null,
+  "on_parking": null,
+  "destination": [
+    {
+      "text": "Вятская ул., 27, Москва, Россия, 127015",
+      "lat": "55.795631",
+      "lon": "37.582039",
+      "time": "15.02.2019 19:00",
+      "status": "new"
+    },
+    {
+      "text": "ХИМКИ (ОКТЯБРЬСКАЯ ЖД)",
+      "lat": "55.894222",
+      "lon": "37.452930",
+      "time": "17.02.2019 19:00",
+      "status": "new"
+    }
+  ],
+  "offline_time": 0,
+  "pos_error": false,
+  "timestamp_off": "1550527200",
+  "timestamp_add": "1550241751",
+  "metadata": {
+    "Водитель": "Николай  Демидов",
+    "Время включения": "15.02.2019 10:00",
+    "Заказ клиента": "тест Николай 1502-4",
+    "ИНН Клиента": "7703380126",
+    "ИНН Перевозчика": "7734397465",
+    "Клиент": "ООО &quot;АДМ КЛАУД&quot;",
+    "Перевозчик": "ООО &quot;ОБОЗ&quot;",
+    "ТС": "H848CX174"
+  }
+}
