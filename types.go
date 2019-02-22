@@ -181,8 +181,8 @@ func (os ObjectsWithStatus) IsObjectIn(o Object) bool {
 }
 
 type CoordinatesAttributes struct {
-	Distance *Int  `json:"distance"`                         // Остаток в км до конечной точки
-	ETA      *Time `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
+	Distance *Int `json:"distance"`                         // Остаток в км до конечной точки
+	ETA      *Int `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
 	// Прогноз строится в зависимости от наличия информации о конечном пункте назначения и времени прибытия.
 	// Если этой информации нет, значения элементов будут пустыми.
 	ETAStatus *ETAStatus `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки.
@@ -190,6 +190,26 @@ type CoordinatesAttributes struct {
 	// Если этой информации нет, значения элементов будут пустыми.
 	Place string `json:"place"` // Населенный пункт местоположения.
 }
+
+//func (ca *CoordinatesAttributes) UnmarshalJSON(data []byte) (err error) {
+//	type Alias CoordinatesAttributes
+//	aux := &struct {
+//		Distance json.Number `json:"distance"`
+//		*Alias
+//	}{
+//		Alias: (*Alias)(ca),
+//	}
+//
+//	if err = json.Unmarshal(data, &aux); err != nil {
+//		return err
+//	}
+//
+//	if ca.Distance, err = aux.Distance.Int64(); err != nil {
+//		return err
+//	}
+//
+//	return nil
+//}
 
 // Список местоположений
 type Positions []Position

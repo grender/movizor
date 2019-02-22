@@ -143,21 +143,6 @@ func TestOperatorInfoUnmarshal(t *testing.T) {
 	}
 }
 
-func TestObjectInfoUnmarshal(t *testing.T) {
-	d, err := ioutil.ReadFile(filepath.Join(dataPath, "object_get1.json"))
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	var oi movizor.ObjectInfo
-	err = json.Unmarshal(d, &oi)
-	// ToDo: Проверить все виды статусов, а также парсинг ETAStatus
-	if err != nil ||
-		!(oi.Status == movizor.StatusOff || oi.Status == movizor.StatusOk) {
-		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.ObjectInfo{}, err)
-	}
-}
-
 func TestObjectString(t *testing.T) {
 	v := movizor.Object("+7 (456) 765-43 57")
 
@@ -243,6 +228,11 @@ func TestObjectInfo_UnmarshalJSON(t *testing.T) {
 			file:    "object_get2.json",
 			wantErr: false,
 		},
+		{
+			name:    "object_get3",
+			file:    "object_get3.json",
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -253,7 +243,7 @@ func TestObjectInfo_UnmarshalJSON(t *testing.T) {
 			if err != nil {
 				t.Fatalf("err: %s", err)
 			}
-			if err := oi.UnmarshalJSON(tt.args.data); (err != nil) != tt.wantErr {
+			if err = oi.UnmarshalJSON(tt.args.data); (err != nil) != tt.wantErr {
 				t.Errorf("ObjectInfo.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
