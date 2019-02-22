@@ -1,7 +1,5 @@
 package movizor
 
-import "encoding/json"
-
 const (
 	// DefaultAPIMovizorEndpoint is default API Movizor endpoint
 	DefaultAPIMovizorEndpoint = "https://movizor.ru/api"
@@ -19,7 +17,14 @@ const (
 	OperatorTele2   Operator = "tele2"
 )
 
-type TariffType json.Number
+type Service string
+
+const (
+	EventSmsService   Service = "eventsms"
+	AutoInformService Service = "autoinform"
+)
+
+type TariffType string
 
 const (
 	TariffManual   TariffType = "0"   // Вручную
@@ -50,8 +55,7 @@ const (
 type ETAStatus string
 
 const (
-	NoETAStatus ETAStatus = "" // статус не указан
-	// NullETAStatus     ETAStatus = "null"     // статус не указан - значение null не парсится, но и ошибок нет.
+	NewETAStatus      ETAStatus = "new"      // успевает
 	OkETAStatus       ETAStatus = "ok"       // успевает
 	LateETAStatus     ETAStatus = "late"     // опаздывает
 	FinishedETAStatus ETAStatus = "finished" // прибыл

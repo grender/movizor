@@ -51,9 +51,10 @@ func TestBalanceDataUnmarshal(t *testing.T) {
 	var bd movizor.Balance
 	err = json.Unmarshal(d, &bd)
 
-	if _, ok := bd.TariffPlans["mts"]; err != nil || !ok || bd.Balance != 476.50 || bd.Credit != 0.0 {
+	if _, ok := bd.OperatorTariffs[movizor.OperatorMTS]; err != nil || !ok || bd.Balance != 476.50 || bd.Credit != 0.0 {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.Balance{}, err)
 	}
+	fmt.Println(bd)
 }
 
 func TestPositionUnmarshal(t *testing.T) {
@@ -65,7 +66,7 @@ func TestPositionUnmarshal(t *testing.T) {
 	var lp movizor.Position
 	err = json.Unmarshal(d1, &lp)
 
-	if err != nil || lp.ETAStatus != movizor.NoETAStatus {
+	if err != nil {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d1, movizor.Position{}, err)
 	}
 
@@ -76,7 +77,7 @@ func TestPositionUnmarshal(t *testing.T) {
 
 	err = json.Unmarshal(d2, &lp)
 
-	if err != nil || lp.ETAStatus != movizor.NoETAStatus {
+	if err != nil {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d2, movizor.Position{}, err)
 	}
 
@@ -92,10 +93,6 @@ func TestPositionsUnmarshal(t *testing.T) {
 	err = json.Unmarshal(d, &p)
 
 	if err != nil {
-		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.Positions{}, err)
-	}
-
-	if p[0].ETAStatus != movizor.NoETAStatus {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.Positions{}, err)
 	}
 }
@@ -123,8 +120,7 @@ func TestObjectPositionsUnmarshal(t *testing.T) {
 	var po movizor.ObjectPositions
 	err = json.Unmarshal(d, &po)
 
-	if err != nil || po[0].Phone != "79630005272" || po[0].ETAStatus != movizor.NoETAStatus {
-		fmt.Println(po[0].ETAStatus)
+	if err != nil || po[0].Phone != "79630005272" {
 		t.Fatalf("Input %s is not parsed to %T.\n\nError: %s", d, movizor.ObjectPositions{}, err)
 	}
 }

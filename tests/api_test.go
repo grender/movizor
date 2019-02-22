@@ -234,13 +234,9 @@ func TestGetObjectsPositions(t *testing.T) {
 	}
 	api.IsDebug = testLogging
 
-	op, err := api.GetObjectsPositions()
+	_, err = api.GetObjectsPositions()
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if v, err := op[0].Lat.Float64(); err != nil || v == 0.0 {
-		t.Fatal("pos_objects action cannot be parsed")
 	}
 }
 

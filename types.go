@@ -2,11 +2,8 @@ package movizor
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
-	"regexp"
 	"strconv"
-	"time"
 )
 
 // TODO: Добавить описание всех типов
@@ -21,25 +18,49 @@ type APIResponse struct {
 	ErrorTextRU string          `json:"error_text_ru,omitempty"` // optional Текст ошибки на русском
 }
 
-//type Tariff struct {
-//	AbonentPayment json.Number `json:"abon"`    // Абоненская плата
-//	RequestCost    json.Number `json:"request"` // Стоимость запроса
-//	TariffTittle   string      `json:"title"`   // Название тарифа
-//}
+type Tariff struct {
+	AbonentPayment float64 `json:"abon"`    // Абоненская плата
+	RequestCost    float64 `json:"request"` // Стоимость запроса
+	TariffTitle    string  `json:"title"`   // Название тарифа
+}
+
+func (t *Tariff) UnmarshalJSON(data []byte) (err error) {
+	type Alias Tariff
+	aux := &struct {
+		AbonentPayment json.Number `json:"abon"`    // Абоненская плата
+		RequestCost    json.Number `json:"request"` // Стоимость запроса
+		*Alias
+	}{
+		Alias: (*Alias)(t),
+	}
+	if err = json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if t.AbonentPayment, err = aux.AbonentPayment.Float64(); err != nil {
+		return err
+	}
+
+	if t.RequestCost, err = aux.RequestCost.Float64(); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // Текущий баланс по договору и список подключенных тарифов по мобильным операторам.
 type Balance struct {
-	Balance      float64                    `json:"balance"` // Текущий остаток средств на балансе
-	Credit       float64                    `json:"credit"`  // Сумма кредитных средств на балансе
-	ContractType string                     `json:"type"`    // Тип договора
-	TariffPlans  map[string]json.RawMessage `json:"tariff"`  // Список операторов с их тарифами и доп тарифы
+	Balance         float64 `json:"balance,string"` // Текущий остаток средств на балансе
+	Credit          float64 `json:"credit,string"`  // Сумма кредитных средств на балансе
+	ContractType    string  `json:"type"`           // Тип договора
+	OperatorTariffs map[Operator]map[TariffType]Tariff
+	ServiceTariffs  map[Service][]Tariff
 }
 
 func (b *Balance) UnmarshalJSON(data []byte) (err error) {
 	type Alias Balance
 	aux := &struct {
-		Balance json.Number `json:"balance"`
-		Credit  json.Number `json:"credit"`
+		TariffPlans map[string]json.RawMessage `json:"tariff"` // Список операторов с их тарифами и доп тарифы
 		*Alias
 	}{
 		Alias: (*Alias)(b),
@@ -48,111 +69,60 @@ func (b *Balance) UnmarshalJSON(data []byte) (err error) {
 		return err
 	}
 
-	if b.Balance, err = aux.Balance.Float64(); err != nil {
-		return err
-	}
+	ops := make(map[Operator]map[TariffType]Tariff)
+	srv := make(map[Service][]Tariff)
 
-	if b.Credit, err = aux.Credit.Float64(); err != nil {
+	for key, data := range aux.TariffPlans {
+		var sliceTrf []Tariff
+		var trf map[TariffType]Tariff
+
+		if err = json.Unmarshal(data, &sliceTrf); err == nil {
+			srv[Service(key)] = sliceTrf
+			continue
+		}
+
+		if err = json.Unmarshal(data, &trf); err == nil {
+			ops[Operator(key)] = trf
+			continue
+		}
+
 		return err
 	}
+	b.OperatorTariffs = ops
+	b.ServiceTariffs = srv
 
 	return nil
 }
 
-// Номер подключаемого абонента в формате MSISDN (например, 79210010203).
-// Возможно так же передавать номер при добавлении в систему в следующих форматах:( +7 (921) 001-02-03; 8-921-001-02-03).
-type Object string
-
-// Stringer returns clean format of cell number.
-// Casting string(Object) gives Original value.
-// fmt.Println(v), fmt.Printf("%s",Object), fmt.Printf("%v",Object) return clean format.
-func (o Object) String() string {
-	// ToDo: Переписать на что-то более надежное
-	return regexp.MustCompile("[^0-9]").ReplaceAllString(string(o), "")
-}
-
-func (o Object) values() url.Values {
-	return url.Values{"phone": {o.String()}}
-}
-
-type Coordinate float32
-
-func (c Coordinate) Float32() float32 {
-	return float32(c)
-}
-
-func (c Coordinate) String() string {
-	return fmt.Sprintf("%.8f", c.Float32())
-}
-
-func (c *Coordinate) UnmarshalJSON(data []byte) (err error) {
-	var num json.Number
-	err = json.Unmarshal(data, &num)
-	if err != nil {
-		return
-	}
-
-	var val float32
-	val, err = jsonNumberToFloat32(num)
-	if err != nil {
-		return
-	}
-
-	*c = Coordinate(val)
-	return nil
-}
-
-type Time time.Time
-
-func (t Time) Time() time.Time {
-	return time.Time(t)
-}
-
-func (t *Time) UnmarshalJSON(data []byte) error {
-	var num json.Number
-	err := json.Unmarshal(data, &num)
-	if err != nil {
-		return err
-	}
-
-	val, err := num.Int64()
-	if err != nil {
-		return err
-	}
-
-	*t = Time(time.Unix(val, 0))
-	return nil
+type CurrentCoordinates struct {
+	CurrentLon *Coordinate `json:"current_lon"` // Широта последнего местоположения
+	CurrentLat *Coordinate `json:"current_lat"` // Долгота последнего местоположения
 }
 
 // Почти полная информация по объекту.
 type ObjectInfo struct {
-	Phone         Object            `json:"phone"`                              // Номер абонента
-	Status        Status            `json:"status"`                             // status type
-	Confirmed     bool              `json:"confirmed"`                          // Получено подтверждение от абонента
-	Title         string            `json:"title"`                              // Имя абонента (название объекта)
-	Tariff        TariffType        `json:"tariff"`                             // Текущий тарифный план
-	TariffNew     *TariffType       `json:"tariff_new,omitempty"`               // Новый тарифный план со следующего дня
-	LastTimestamp Time              `json:"last_timestamp"`                     // Время последнего запроса на определение местоположения
-	AtRequest     bool              `json:"at_request,omitempty"`               // Производится определение местоположения в данный момент
-	CurrentLon    *Coordinate       `json:"current_lon"`                        // Широта последнего местоположения
-	CurrentLat    *Coordinate       `json:"current_lat"`                        // Долгота последнего местоположения
-	Place         string            `json:"place,omitempty"`                    // Населенный пункт последнего местоположения
-	Distance      int64             `json:"distance,omitempty"`                 // Остаток в км до конечной точки
-	ETA           *Time             `json:"distance_forecast_time,omitempty"`   // Прогноз оставшегося времени до конечной точки
-	ETAStatus     *string           `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки
-	OnParking     *bool             `json:"on_parking,omitempty"`               // Находится ли объект на парковке
-	Destination   []Destination     `json:"destination,omitempty"`              // Список точек назначения, которые должен посетить Водитель.
-	OfflineTime   Time              `json:"offline_time,omitempty"`             // Время последнего известного местоположения
-	PosError      bool              `json:"pos_error,omitempty"`                // Последнее местоположение не удалось определить
-	TimestampOff  Time              `json:"timestamp_off"`                      // Время автоматического отключения от мониторинга
-	TimestampAdd  Time              `json:"timestamp_add"`                      // Время добавления объекта в Мовизор
-	Metadata      map[string]string `json:"metadata,omitempty"`                 // Метаинформация объекта, массив
+	Phone         Object      `json:"phone"`                // Номер абонента
+	Status        Status      `json:"status"`               // status type
+	Confirmed     bool        `json:"confirmed"`            // Получено подтверждение от абонента
+	Title         string      `json:"title"`                // Имя абонента (название объекта)
+	Tariff        TariffType  `json:"tariff"`               // Текущий тарифный план
+	TariffNew     *TariffType `json:"tariff_new,omitempty"` // Новый тарифный план со следующего дня
+	LastTimestamp Time        `json:"last_timestamp"`       // Время последнего запроса на определение местоположения
+	AtRequest     bool        `json:"at_request,omitempty"` // Производится определение местоположения в данный момент
+	CurrentCoordinates
+	CoordinatesAttributes
+	OnParking    *bool             `json:"on_parking,omitempty"`   // Находится ли объект на парковке
+	Destination  []Destination     `json:"destination,omitempty"`  // Список точек назначения, которые должен посетить Водитель.
+	OfflineTime  Time              `json:"offline_time,omitempty"` // Время последнего известного местоположения
+	PosError     bool              `json:"pos_error,omitempty"`    // Последнее местоположение не удалось определить
+	TimestampOff Time              `json:"timestamp_off"`          // Время автоматического отключения от мониторинга
+	TimestampAdd Time              `json:"timestamp_add"`          // Время добавления объекта в Мовизор
+	Metadata     map[string]string `json:"metadata,omitempty"`     // Метаинформация объекта, массив
 }
 
 func (oi *ObjectInfo) UnmarshalJSON(data []byte) (err error) {
 	type Alias ObjectInfo
 	aux := &struct {
-		Distance json.Number     `json:"distance,omitempty"`
 		Metadata json.RawMessage `json:"metadata,omitempty"`
 		*Alias
 	}{
@@ -160,10 +130,6 @@ func (oi *ObjectInfo) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	if err = json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	if oi.Distance, err = aux.Distance.Int64(); err != nil {
 		return err
 	}
 
@@ -179,13 +145,17 @@ func (oi *ObjectInfo) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
+type Coordinates struct {
+	Lat Coordinate `json:"lat"` // Долгота
+	Lon Coordinate `json:"lon"` // Широта
+}
+
 // Список точек назначения, которые должен посетить Водитель.
 type Destination struct {
-	Text   string     `json:"text"`
-	Lat    Coordinate `json:"lat"`
-	Lon    Coordinate `json:"lon"`
-	Time   string     `json:"time"`
-	Status ETAStatus  `json:"status"`
+	Text string `json:"text"`
+	Coordinates
+	Time   string    `json:"time"`
+	Status ETAStatus `json:"status"`
 }
 
 // Текущий статус объекта трекинга.
@@ -210,48 +180,27 @@ func (os ObjectsWithStatus) IsObjectIn(o Object) bool {
 	return false
 }
 
-// Список местоположений
-type Positions []Position
-
-// Информация о последнем зафиксированном в системе местоположении
-type Position struct {
-	Lon              Coordinate `json:"lon"`                              // Долгота
-	Lat              Coordinate `json:"lat"`                              // Широта
-	Timestamp        Time       `json:"timestamp"`                        // Время получения координат для этой точки
-	TimestampRequest Time       `json:"timestamp_request,omitempty"`      // Время создания запроса на получение координат
-	Deviation        int64      `json:"radius,omitempty"`                 // Радиус погрешности (м)
-	Distance         int64      `json:"distance"`                         // Остаток в км до конечной точки
-	ETA              Time       `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
+type CoordinatesAttributes struct {
+	Distance *Int  `json:"distance"`                         // Остаток в км до конечной точки
+	ETA      *Time `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
 	// Прогноз строится в зависимости от наличия информации о конечном пункте назначения и времени прибытия.
 	// Если этой информации нет, значения элементов будут пустыми.
-	ETAStatus ETAStatus `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки.
+	ETAStatus *ETAStatus `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки.
 	// Прогноз строится в зависимости от наличия информации о конечном пункте назначения и времени прибытия.
 	// Если этой информации нет, значения элементов будут пустыми.
 	Place string `json:"place"` // Населенный пункт местоположения.
 }
 
-func (p *Position) UnmarshalJSON(data []byte) (err error) {
-	type Alias Position
-	aux := &struct {
-		Deviation json.Number `json:"radius"`
-		Distance  json.Number `json:"distance"`
-		*Alias
-	}{
-		Alias: (*Alias)(p),
-	}
-	if err = json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
+// Список местоположений
+type Positions []Position
 
-	if p.Deviation, err = aux.Deviation.Int64(); err != nil {
-		return err
-	}
-
-	if p.Distance, err = aux.Distance.Int64(); err != nil {
-		return err
-	}
-
-	return nil
+// Информация о последнем зафиксированном в системе местоположении
+type Position struct {
+	Coordinates
+	Timestamp        Time `json:"timestamp"`                   // Время получения координат для этой точки
+	TimestampRequest Time `json:"timestamp_request,omitempty"` // Время создания запроса на получение координат
+	Deviation        *Int `json:"radius,omitempty"`            // Радиус погрешности (м)
+	CoordinatesAttributes
 }
 
 // Список объектов с координатами, последним временем обновления координат, текущим местонахождением и ETA.
@@ -259,21 +208,8 @@ type ObjectPositions []ObjectPosition
 
 // Координаты, последнее временя обновления координат, текущее местонахождение и ETA объекта.
 type ObjectPosition struct {
-	Phone     Object      `json:"phone"`                            // Номер телефона абонента
-	Lon       json.Number `json:"lon"`                              // Широта
-	Lat       json.Number `json:"lat"`                              // Долгота
-	Timestamp Time        `json:"timestamp"`                        // Время
-	Deviation json.Number `json:"radius"`                           // Радиус погрешности (м)
-	Place     string      `json:"place"`                            // Населенный пункт местоположения
-	Distance  json.Number `json:"distance,omitempty"`               // Остаток в км до конечной точки
-	ETA       json.Number `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
-	// Прогноз строится в зависимости от наличия информации
-	// о конечном пункте назначения и времени прибытия.
-	// Если этой информации нет, значения элементов будут пустыми.
-	ETAStatus ETAStatus `json:"distance_forecast_status,omitempty"` // Прогноз успеваемости до конечной точки.
-	// Прогноз строится в зависимости от наличия информации
-	// о конечном пункте назначения и времени прибытия.
-	// Если этой информации нет, значения элементов будут пустыми.
+	Phone Object `json:"phone"` // Номер телефона абонента
+	Position
 }
 
 type PositionRequest struct {
