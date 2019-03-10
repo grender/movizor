@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"regexp"
 	"strconv"
+	"strings"
 	"time"
+	"unicode"
 )
 
 // Object - это номер подключаемого абонента в формате MSISDN
@@ -19,12 +20,35 @@ type Object string
 // Casting string(Object) gives Original value.
 // fmt.Println(v), fmt.Printf("%s",Object), fmt.Printf("%v",Object) return clean format.
 func (o Object) String() string {
-	// ToDo: Переписать на что-то более надежное
-	return regexp.MustCompile("[^0-9]").ReplaceAllString(string(o), "")
+	f := func(c rune) rune {
+		if unicode.IsNumber(c) {
+			return c
+		}
+		return '&'
+	}
+	num := strings.Replace(strings.Map(f, string(o)), "&", "", -1)
+
+	for i := 0; i < len(num); i++ {
+		if num[i:i+1] == "9" {
+			num = num[i:]
+		}
+	}
+
+	if len(num) >= 10 {
+		num := num[len(num)-10:]
+		return "7" + num
+	}
+
+	return ""
 }
 
-func (o Object) values() url.Values {
-	return url.Values{"phone": {o.String()}}
+func (o Object) values() (url.Values, error) {
+	p := o.String()
+	if p == "" {
+		return url.Values{}, fmt.Errorf("invalid format of phone number: %s , should be 79XXXXXXXXX", string(o))
+	}
+
+	return url.Values{"phone": {p}}, nil
 }
 
 // Coordinate - гео-координата.

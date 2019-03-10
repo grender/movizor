@@ -141,7 +141,11 @@ func (api *API) AddObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 // AddObjectToSlave подключает абонента к мониторингу в подчиненный кабинет по ID этого кабинета.
 // ID кабинета тоже самое, что и "Номер клиента" указанные в правом верхнем углу кабинета клиента.
 func (api *API) AddObjectToSlave(o Object, oo *ObjectOptions, slaveID uint64) (APIResponse, error) {
-	v := o.values()
+	v, err := o.values()
+	if err != nil {
+		return APIResponse{}, err
+	}
+
 	if oo != nil {
 		if err := oo.addValuesTo(&v); err != nil {
 			return APIResponse{}, err
@@ -163,7 +167,12 @@ func (api *API) AddObjectToSlave(o Object, oo *ObjectOptions, slaveID uint64) (A
 // GetObjectInfo возвращает информацию о ранее добавленном абоненте с наиболее полной
 // информацией, включая все опции, с которыми добавлялся объект.
 func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
-	resp, err := api.MakeRequest("object_get", o.values())
+	v, err := o.values()
+	if err != nil {
+		return ObjectInfo{}, err
+	}
+
+	resp, err := api.MakeRequest("object_get", v)
 	if err != nil {
 		return ObjectInfo{}, err
 	}
@@ -188,7 +197,11 @@ func (api *API) EditObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 //		api.EditObjectWithActivate(object, options, true) // немедленная активация
 //		api.EditObjectWithActivate(object, options, false) // активация на следующие сутки
 func (api *API) EditObjectWithActivate(o Object, oo *ObjectOptions, activate bool) (APIResponse, error) {
-	v := o.values()
+	v, err := o.values()
+	if err != nil {
+		return APIResponse{}, err
+	}
+
 	if oo != nil {
 		err := oo.addValuesTo(&v)
 		if err != nil {
@@ -227,7 +240,12 @@ func (api *API) GetObjects() (ObjectsWithStatus, error) {
 
 // DeleteObject отключает и удаляет абонента из системы мониторинга.
 func (api *API) DeleteObject(o Object) (APIResponse, error) {
-	resp, err := api.MakeRequest("object_delete", o.values())
+	v, err := o.values()
+	if err != nil {
+		return APIResponse{}, err
+	}
+
+	resp, err := api.MakeRequest("object_delete", v)
 	if err != nil {
 		return resp, err
 	}
@@ -238,7 +256,12 @@ func (api *API) DeleteObject(o Object) (APIResponse, error) {
 // ReactivateObject производит повторное подключение к системе абонента, если сработало автоматическое отключение.
 // Невозможно повторно подключить ранее удаленный объект мониторинга.
 func (api *API) ReactivateObject(o Object) (APIResponse, error) {
-	resp, err := api.MakeRequest("object_reactivate", o.values())
+	v, err := o.values()
+	if err != nil {
+		return APIResponse{}, err
+	}
+
+	resp, err := api.MakeRequest("object_reactivate", v)
 	if err != nil {
 		return resp, err
 	}
@@ -249,7 +272,12 @@ func (api *API) ReactivateObject(o Object) (APIResponse, error) {
 // CancelTariffChangeObject отменяет переход на новый тариф со следующего дня. Если с помощтю EditObject
 // и без автоматической активации меняется тариф, то эту смену можно отменить.
 func (api *API) CancelTariffChangeObject(o Object) (APIResponse, error) {
-	resp, err := api.MakeRequest("object_cancel_tariff", o.values())
+	v, err := o.values()
+	if err != nil {
+		return APIResponse{}, err
+	}
+
+	resp, err := api.MakeRequest("object_cancel_tariff", v)
 	if err != nil {
 		return resp, err
 	}
@@ -259,7 +287,12 @@ func (api *API) CancelTariffChangeObject(o Object) (APIResponse, error) {
 
 // GetObjectLastPosition возвращает информацию о последнем зафиксированном в системе местоположении.
 func (api *API) GetObjectLastPosition(o Object) (Position, error) {
-	resp, err := api.MakeRequest("pos_last", o.values())
+	v, err := o.values()
+	if err != nil {
+		return Position{}, err
+	}
+
+	resp, err := api.MakeRequest("pos_last", v)
 	if err != nil {
 		return Position{}, err
 	}
@@ -276,7 +309,11 @@ func (api *API) GetObjectLastPosition(o Object) (Position, error) {
 // GetObjectPositions возвращает информацию о всех координатах абонента.
 // По умолчанию выдаются последние 1000 записей.
 func (api *API) GetObjectPositions(o Object, rpo *RequestPositionsOptions) (Positions, error) {
-	v := o.values()
+	v, err := o.values()
+	if err != nil {
+		return Positions{}, err
+	}
+
 	if rpo != nil {
 		err := rpo.addValuesTo(&v)
 		if err != nil {
@@ -303,7 +340,12 @@ func (api *API) GetObjectPositions(o Object, rpo *RequestPositionsOptions) (Posi
 // RequestPosition возвращает ID запроса, который передается в GetRequestedPosition
 // для получения координат объекта.
 func (api *API) RequestPosition(o Object) (PositionRequest, error) {
-	resp, err := api.MakeRequest("pos_request", o.values())
+	v, err := o.values()
+	if err != nil {
+		return PositionRequest{}, err
+	}
+
+	resp, err := api.MakeRequest("pos_request", v)
 	if err != nil {
 		return PositionRequest{}, err
 	}
@@ -353,7 +395,12 @@ func (api *API) GetObjectsPositions() (ObjectPositions, error) {
 
 // GetOperatorInfo возвращает информацию по оператору объекта трекинга (номеру телефона)
 func (api *API) GetOperatorInfo(o Object) (OperatorInfo, error) {
-	resp, err := api.MakeRequest("get_operator", o.values())
+	v, err := o.values()
+	if err != nil {
+		return OperatorInfo{}, err
+	}
+
+	resp, err := api.MakeRequest("get_operator", v)
 	if err != nil {
 		return OperatorInfo{}, err
 	}
