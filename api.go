@@ -1,4 +1,4 @@
-// movizor package provides access to http://MoVizor.ru API
+// Package movizor package provides access to http://MoVizor.ru API
 // which provides access for GSM geo-position services of russian telecommunications operators.
 // Beeline, MTS, Megafon, Tele2.
 //
@@ -375,7 +375,7 @@ func (api *API) GetRequestedPosition(pr PositionRequest) (Position, error) {
 	return p, nil
 }
 
-// GetObjectPositions возвращает список объектов с их местоположением и ETA
+// GetObjectsPositions возвращает список объектов с их местоположением и ETA
 // (estimated time of arrival)
 func (api *API) GetObjectsPositions() (ObjectPositions, error) {
 	resp, err := api.MakeRequest("pos_objects", nil)

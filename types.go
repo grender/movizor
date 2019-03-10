@@ -143,11 +143,7 @@ func (oi *ObjectInfo) UnmarshalJSON(data []byte) (err error) {
 		return nil
 	}
 
-	if err = json.Unmarshal(aux.Metadata, &oi.Metadata); err != nil {
-		return err
-	}
-
-	return nil
+	return json.Unmarshal(aux.Metadata, &oi.Metadata)
 }
 
 // Coordinates представляет собой структуру гео-координат.

@@ -87,7 +87,7 @@ func (api *API) UnsubscribeObject(o Object) error {
 	return api.ClearObjectEventSubscriptions(o, nil)
 }
 
-// UnsubscribeObject производит отписку от конкретного события для определенного телефона.
+// ClearObjectEventSubscriptions производит отписку от конкретного события для определенного телефона.
 // Если существует подписка на все телефоны на какое-то событие, то она не будет затронута.
 // Т.е. удаляются только подписки с явным указанием номера телефона.
 func (api *API) ClearObjectEventSubscriptions(o Object, eType *EventType) error {
