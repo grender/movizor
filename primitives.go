@@ -52,6 +52,7 @@ func (o Object) values() (url.Values, error) {
 }
 
 // Coordinate - гео-координата.
+// ToDo: сделать проверку на допустимые значения и возможно заменить на float64
 type Coordinate float32
 
 // Float32 возвращает гео-координату в виде float32.
@@ -84,7 +85,7 @@ func (c *Coordinate) UnmarshalJSON(data []byte) (err error) {
 // Time - временная метка.
 type Time time.Time
 
-// Метод Time возвращает временную метку в виде time.Time.
+// Time возвращает временную метку в виде time.Time.
 func (t Time) Time() time.Time {
 	return time.Time(t)
 }

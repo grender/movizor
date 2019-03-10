@@ -11,6 +11,7 @@ import (
 )
 
 // DestinationOptions указывает точку следования объекта мониторинга.
+// ToDo: заменить на Coordinates
 type DestinationOptions struct {
 	Text         string
 	Lon          float32
