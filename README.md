@@ -1,4 +1,4 @@
-# movizor [![Build Status](https://travis-ci.org/UndeadDemidov/movizor.svg?branch=master)](https://travis-ci.org/UndeadDemidov/movizor)&nbsp;[![GoDoc](https://godoc.org/github.com/UndeadDemidov/movizor?status.svg)](https://godoc.org/github.com/UndeadDemidov/movizor)
+# movizor [![Build Status](https://travis-ci.org/UndeadDemidov/movizor.svg?branch=master)](https://travis-ci.org/UndeadDemidov/movizor)&nbsp;[![GoDoc](https://godoc.org/github.com/UndeadDemidov/movizor?status.svg)](https://godoc.org/github.com/UndeadDemidov/movizor)&nbsp;[![Code Climate](https://codeclimate.com/github/UndeadDemidov/movizor/badges/gpa.svg)](https://codeclimate.com/github/UndeadDemidov/movizor)&nbsp;[![codecov](https://codecov.io/gh/UndeadDemidov/movizor/branch/master/graph/badge.svg)](https://codecov.io/gh/UndeadDemidov/movizor)&nbsp;[![Go Report Card](https://goreportcard.com/badge/UndeadDemidov/movizor)](https://goreportcard.com/report/UndeadDemidov/movizor)
 This is Golang package for MoVizor.ru API - monitoring service in Russia.
 
 [MoVizor.ru](http://movizor.ru) - это агрегатор услуг GSM позиционирования сотовых операторов России: БиЛайн, МТС, Мегафон, Теле2.

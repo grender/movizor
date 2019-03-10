@@ -10,11 +10,7 @@ import (
 	"time"
 )
 
-// Destinations array [string] массив конечных точек маршрута.
-// Передается в многомерном массиве, каждый вложенный массив обозначает одну конечную (или промежуточную) точку:
-// destination[0][text]=Москва
-// destination[0][coord]=55.7098009,37.0536908,
-// destination[0][time]=26.01.2019 18:00
+// DestinationOptions указывает точку следования объекта мониторинга.
 type DestinationOptions struct {
 	Text         string
 	Lon          float32

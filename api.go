@@ -7,7 +7,6 @@ package movizor
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -87,8 +86,8 @@ func (api *API) MakeRequest(action string, params url.Values) (APIResponse, erro
 		return apiResp, nil
 	}
 
-	err = errors.New(fmt.Sprintf("movizor API returns error on request: %s - %s",
-		apiResp.ErrorCode, apiResp.ErrorText))
+	err = fmt.Errorf("movizor API returns error on request: %s - %s",
+		apiResp.ErrorCode, apiResp.ErrorText)
 	if api.IsDebug {
 		log.Printf("ERROR: request: %s\nresponse: %s", req.URL, bytes)
 	}
