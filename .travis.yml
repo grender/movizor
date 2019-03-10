@@ -13,4 +13,8 @@ after_success:
   - bash <(curl -s https://codecov.io/bash)
 
 notifications:
-  email: [nikolay.a.demidov@yandex.ru]
+  email:
+    recipients:
+      - nikolay.a.demidov@yandex.ru
+    on_success: never # default: change
+    on_failure: always # default: always
