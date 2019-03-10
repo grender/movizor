@@ -39,7 +39,7 @@ func (do DestinationOptions) addValuesTo(idx int, v *url.Values) error {
 	return nil
 }
 
-// Расписание запросов на определение координат объекта
+// SchedulingOptions является расписанием запросов на определение координат объекта.
 type SchedulingOptions struct {
 	weekdays [7]bool
 	FireAt   []time.Time // st Массив времени в расписании. Передается в многомерном массиве, каждый вложенный элемент является временем для срабатывания расписания в формате hh:mm
@@ -222,11 +222,8 @@ func (o *ObjectOptions) addValuesTo(v *url.Values) error {
 	return nil
 }
 
-//type ObjectAddOptions struct {
-//	// account integer Идентификатор аккаунта подчинённого кабинета в который добавляется объект.
-//}
-
-//
+// RequestPositionsOptions - представляет собой указание выборки списка координат методом
+// GetObjectPositions.
 type RequestPositionsOptions struct {
 	RequestLimit uint64    // req_limit - Разрешить делать не более X запросов в сутки на определение координат всех объектов
 	Offset       uint64    // offset - Смещение количества получаемых координат
@@ -254,7 +251,8 @@ func (rpo *RequestPositionsOptions) addValuesTo(v *url.Values) error {
 	return nil
 }
 
-// ObjectEventsOptions предоставляет опции для GetEvents.
+// ObjectEventsOptions предоставляет опции для получения списка событий через
+// метод GetEvents.
 type ObjectEventsOptions struct {
 	RequestLimit uint64
 	AfterEventID uint64
@@ -271,17 +269,19 @@ func (eo ObjectEventsOptions) values() url.Values {
 	return v
 }
 
-// SubscribeEventOptions предоставляет опции подписки на ноификацию по событиям. Если установлен признак AllObjects,
-// то список Objects игнорируется.
+// SubscribeEventOptions предоставляет опции подписки на нотификацию по событиям.
+// Если установлен признак AllObjects, то список Objects игнорируется.
 type SubscribeEventOptions struct {
 	AllObjects bool
 	Objects    []Object
 	Event      EventType
-	notifyTo   NotificationType
+	notifyTo   notificationType
 	smsPhone   Object
 	email      string
 }
 
+// NewSubscribeEventOptions возвращает экземпляр SubscribeEventOptions для указанного
+// объекта и типа события.
 func NewSubscribeEventOptions(o Object, e EventType) SubscribeEventOptions {
 	return SubscribeEventOptions{
 		Objects: []Object{o},
@@ -292,12 +292,12 @@ func NewSubscribeEventOptions(o Object, e EventType) SubscribeEventOptions {
 // SetSMSNotification устанавливает нотификацию на указанный телефон по СМС. Работает только та нотификация,
 // которая была установлена последней в данной подписке. Это особенности API Movizor.
 func (se *SubscribeEventOptions) SetSMSNotification(phone Object) error {
-	se.notifyTo = SMSNotification
 	// ToDo: Переписать на что-то более надежное
 	if phone.String() == "" {
 		return fmt.Errorf("invalid phone number %s", string(phone))
 	}
 
+	se.notifyTo = smsNotification
 	se.smsPhone = phone
 	return nil
 }
@@ -309,7 +309,7 @@ func (se *SubscribeEventOptions) SetEMailNotification(mail string) error {
 	if !re.MatchString(mail) {
 		return fmt.Errorf("%s is not valid email address", mail)
 	}
-	se.notifyTo = EMailNotification
+	se.notifyTo = emailNotification
 	se.email = mail
 	return nil
 }
@@ -317,7 +317,7 @@ func (se *SubscribeEventOptions) SetEMailNotification(mail string) error {
 // SetTelegramNotification устанавливает нотификацию на Телеграм указанные в профиле держателя аккаута.
 // Работает только та нотификация, которая была установлена последней в данной подписке. Это особенности API Movizor.
 func (se *SubscribeEventOptions) SetTelegramNotification() {
-	se.notifyTo = TelegramNotification
+	se.notifyTo = telegramNotification
 }
 
 func (se SubscribeEventOptions) values() (url.Values, error) {
@@ -345,9 +345,9 @@ func (se SubscribeEventOptions) values() (url.Values, error) {
 	v.Add("events", string(se.Event))
 	v.Add("notify_type", string(se.notifyTo))
 	switch se.notifyTo {
-	case SMSNotification:
+	case smsNotification:
 		v.Add("notify_value", se.smsPhone.String())
-	case EMailNotification:
+	case emailNotification:
 		v.Add("notify_value", se.email)
 	}
 

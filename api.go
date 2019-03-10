@@ -1,3 +1,8 @@
+// movizor package provides access to http://MoVizor.ru API
+// which provides access for GSM geo-position services of russian telecommunications operators.
+// Beeline, MTS, Megafon, Tele2.
+//
+// As soon as MoVizor provides service only in Russia all documentation will be in russian.
 package movizor
 
 import (
@@ -12,7 +17,7 @@ import (
 	"strconv"
 )
 
-// API - это клиент к API Мовизора. Сервиса определения гео-координат по GSM.
+// API - это клиент к API Мовизора. Сервиса определения гео-координат на основе GSM сервиса.
 type API struct {
 	Endpoint string
 	Project  string
@@ -24,9 +29,9 @@ type API struct {
 	//shutdownChannel chan interface{}
 }
 
-// NewMovizorAPIWithEndpoint creates new instance of Movizor API
-// It can get non standard Movizor endpoint
-// in case it will be moved to another address.
+// NewMovizorAPIWithEndpoint создает экземпляр Movizor API.
+// Может быть указан нестандартный адрес сервиса МоВизора
+// на случай, если такой появится.
 func NewMovizorAPIWithEndpoint(endp string, prj string, token string) (*API, error) {
 	api := &API{
 		Endpoint: endp,
@@ -34,19 +39,17 @@ func NewMovizorAPIWithEndpoint(endp string, prj string, token string) (*API, err
 		Token:    token,
 		Client:   &http.Client{},
 		IsDebug:  false,
-		//Buffer:          100,
-		//shutdownChannel: make(chan interface{}),
 	}
 	return api, nil
 }
 
-// NewMovizorAPI creates new instance of Movizor API with default url of endpoint
+// NewMovizorAPI создает экземпляр Movizor API для стандартного адреса сервера.
 func NewMovizorAPI(prj string, token string) (*API, error) {
 	return NewMovizorAPIWithEndpoint(DefaultAPIMovizorEndpoint, prj, token)
 }
 
-// MakeRequest makes request to Movizor API with specific action.
-// It gives one point of requests
+// MakeRequest делает запрос в Movizor API с указанным действием и параметрами.
+// Все методы API вызывают MakeRequest.
 func (api *API) MakeRequest(action string, params url.Values) (APIResponse, error) {
 	// MakeRequest itself
 	endpAction := fmt.Sprintf(fmt.Sprint(api.Endpoint, APIMovizorEndpointSuffix), api.Project, action)
@@ -93,7 +96,6 @@ func (api *API) MakeRequest(action string, params url.Values) (APIResponse, erro
 	return apiResp, err
 }
 
-// decodeAPIResponse checks if response
 func (api *API) decodeAPIResponse(responseBody io.Reader, resp *APIResponse) (_ []byte, err error) {
 	if !api.IsDebug {
 		dec := json.NewDecoder(responseBody)
@@ -115,8 +117,8 @@ func (api *API) decodeAPIResponse(responseBody io.Reader, resp *APIResponse) (_ 
 	return data, nil
 }
 
-// GetBalance returns current remain of money and collected credit
-// with tariffs that set for the Project
+// GetBalance возвращает текущее состояние баланса и установленные тарифы
+// для всех видов мониторинга.
 func (api *API) GetBalance() (Balance, error) {
 	resp, err := api.MakeRequest("balance", nil)
 	if err != nil {
@@ -136,6 +138,8 @@ func (api *API) AddObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 	return api.AddObjectToSlave(o, oo, 0)
 }
 
+// AddObjectToSlave подключает абонента к мониторингу в подчиненный кабинет по ID этого кабинета.
+// ID кабинета тоже самое, что и "Номер клиента" указанные в правом верхнем углу кабинета клиента.
 func (api *API) AddObjectToSlave(o Object, oo *ObjectOptions, slaveID uint64) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
@@ -156,7 +160,8 @@ func (api *API) AddObjectToSlave(o Object, oo *ObjectOptions, slaveID uint64) (A
 	return resp, nil
 }
 
-// GetObjectInfo возвращает информацию о ранее добавленном абоненте.
+// GetObjectInfo возвращает информацию о ранее добавленном абоненте с наиболее полной
+// информацией, включая все опции, с которыми добавлялся объект.
 func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
 	resp, err := api.MakeRequest("object_get", o.values())
 	if err != nil {
@@ -172,12 +177,16 @@ func (api *API) GetObjectInfo(o Object) (ObjectInfo, error) {
 	return oi, nil
 }
 
-// Редактирование опций мониторинга ранее добавленного абонента.
+// EditObject производит изменение опций мониторинга ранее добавленного абонента.
 func (api *API) EditObject(o Object, oo *ObjectOptions) (APIResponse, error) {
 	return api.EditObjectWithActivate(o, oo, false)
 }
 
-// Редактирование опций мониторинга ранее добавленного абонента с опцией активацией сразу или на следующие сутки.
+// EditObjectWithActivate проивзодит изменение опций мониторинга ранее добавленного абонента
+// с опцией немедленной активации или на следующие сутки.
+//
+//		api.EditObjectWithActivate(object, options, true) // немедленная активация
+//		api.EditObjectWithActivate(object, options, false) // активация на следующие сутки
 func (api *API) EditObjectWithActivate(o Object, oo *ObjectOptions, activate bool) (APIResponse, error) {
 	v := o.values()
 	if oo != nil {
@@ -199,7 +208,8 @@ func (api *API) EditObjectWithActivate(o Object, oo *ObjectOptions, activate boo
 	return resp, nil
 }
 
-// GetObjects возвращает список абонентов, добавленных в мониторинг.
+// GetObjects возвращает список абонентов, добавленных в мониторинг с их статусом
+// и текущим местоположением.
 func (api *API) GetObjects() (ObjectsWithStatus, error) {
 	resp, err := api.MakeRequest("object_list", nil)
 	if err != nil {
@@ -290,6 +300,8 @@ func (api *API) GetObjectPositions(o Object, rpo *RequestPositionsOptions) (Posi
 // RequestPosition выполняет запрос на определение местоположения.
 // Используется для определения координат вручную (TariffManual).
 // Однако можно использовать и с другими тарифами.
+// RequestPosition возвращает ID запроса, который передается в GetRequestedPosition
+// для получения координат объекта.
 func (api *API) RequestPosition(o Object) (PositionRequest, error) {
 	resp, err := api.MakeRequest("pos_request", o.values())
 	if err != nil {
@@ -305,7 +317,8 @@ func (api *API) RequestPosition(o Object) (PositionRequest, error) {
 	return pr, nil
 }
 
-// GetRequestedPosition получает информацию о сделанном запросе на определение местоположения по его идентификатору.
+// GetRequestedPosition получает информацию о сделанном запросе на определение
+// местоположения по его идентификатору, который получен методом RequestPosition.
 func (api *API) GetRequestedPosition(pr PositionRequest) (Position, error) {
 	resp, err := api.MakeRequest("pos_get", pr.values())
 	if err != nil {
@@ -321,7 +334,8 @@ func (api *API) GetRequestedPosition(pr PositionRequest) (Position, error) {
 	return p, nil
 }
 
-// GetObjectPositions returns slice of objects with its positions and ETA
+// GetObjectPositions возвращает список объектов с их местоположением и ETA
+// (estimated time of arrival)
 func (api *API) GetObjectsPositions() (ObjectPositions, error) {
 	resp, err := api.MakeRequest("pos_objects", nil)
 	if err != nil {

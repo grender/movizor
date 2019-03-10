@@ -8,22 +8,25 @@ const (
 	APIMovizorEndpointSuffix = "/%s/%s"
 )
 
+// Operator представляет собой Операторов мобильной связи.
 type Operator string
 
 const (
-	OperatorMTS     Operator = "mts"
-	OperatorMegafon Operator = "megafon"
-	OperatorBeeline Operator = "beeline"
-	OperatorTele2   Operator = "tele2"
+	OperatorMTS     Operator = "mts"     // МТС
+	OperatorMegafon Operator = "megafon" // Мегафон
+	OperatorBeeline Operator = "beeline" // Билайн
+	OperatorTele2   Operator = "tele2"   // Теле2
 )
 
+// Service представляет собой тип доп сервиса МоВизора.
 type Service string
 
 const (
-	EventSmsService   Service = "eventsms"
-	AutoInformService Service = "autoinform"
+	EventSmsService   Service = "eventsms"   // Подписка на SMS по событиям.
+	AutoInformService Service = "autoinform" // Голосовое информирование на телефон подключаемого абонента.
 )
 
+// TariffType представляет собой тип тарифа.
 type TariffType string
 
 const (
@@ -36,6 +39,7 @@ const (
 	TariffEvery180 TariffType = "180" // Каждые 3 часа
 )
 
+// Status представляет собой возможный статус состояния объекта в системе МоВизор.
 type Status string
 
 const (
@@ -52,6 +56,7 @@ const (
 	StatusTrackingIsOff      Status = "limited"      // У абонента ограничение на подключение к услуге
 )
 
+// ETAStatus представляет собой возможный статус ETA объекта.
 type ETAStatus string
 
 const (
@@ -61,6 +66,8 @@ const (
 	FinishedETAStatus ETAStatus = "finished" // прибыл
 )
 
+// EventType представляет собой возможный тип события, которые регистрируются в сервисе МоВизора.
+// Не по всем типам событий можно производить подписку для нотификации.
 type EventType string
 
 const (
@@ -91,22 +98,10 @@ const (
 	MStartEvent                 EventType = "mstart"          // - приложение запущено
 )
 
-type NotificationType string
+type notificationType string
 
 const (
-	SMSNotification      NotificationType = "sms"
-	EMailNotification    NotificationType = "email"
-	TelegramNotification NotificationType = "telegram"
+	smsNotification      notificationType = "sms"
+	emailNotification    notificationType = "email"
+	telegramNotification notificationType = "telegram"
 )
-
-//type Weekday uint8
-//
-//const (
-//	Monday Weekday = 1
-//	Tuesday
-//	Wednesday
-//	Thursday
-//	Friday
-//	Saturday
-//	Sunday
-//)

@@ -9,8 +9,10 @@ import (
 	"time"
 )
 
-// Номер подключаемого абонента в формате MSISDN (например, 79210010203).
-// Возможно так же передавать номер при добавлении в систему в следующих форматах:( +7 (921) 001-02-03; 8-921-001-02-03).
+// Object - это номер подключаемого абонента в формате MSISDN
+// (например, 79210010203).
+// Возможно так же передавать номер при добавлении в систему в
+// следующих форматах:( +7 (921) 001-02-03; 8-921-001-02-03).
 type Object string
 
 // Stringer returns clean format of cell number.
@@ -25,12 +27,15 @@ func (o Object) values() url.Values {
 	return url.Values{"phone": {o.String()}}
 }
 
+// Coordinate - гео-координата.
 type Coordinate float32
 
+// Float32 возвращает гео-координату в виде float32.
 func (c Coordinate) Float32() float32 {
 	return float32(c)
 }
 
+// String возвращает гео-координату в виде строки формата "%.8f"
 func (c Coordinate) String() string {
 	return fmt.Sprintf("%.8f", c.Float32())
 }
@@ -52,8 +57,10 @@ func (c *Coordinate) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
+// Time - временная метка.
 type Time time.Time
 
+// Метод Time возвращает временную метку в виде time.Time.
 func (t Time) Time() time.Time {
 	return time.Time(t)
 }
@@ -74,6 +81,8 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// Int - определение типа int для unmarshaling json с возможным
+// значением json null.
 type Int int
 
 func (i Int) Int() int {

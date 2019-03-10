@@ -7,7 +7,8 @@ import (
 )
 
 // TODO: Добавить описание всех типов
-// Ответ от сервиса с описанием типа сообщения и сегмента с данными.
+// APIResponse представляет собой ответ от сервиса с описанием типа
+// сообщения и сегмента с данными.
 type APIResponse struct {
 	Result      string          `json:"result"`                  // "success" or "error" expected
 	ResultCode  string          `json:"code"`                    // "OK" expected
@@ -18,6 +19,7 @@ type APIResponse struct {
 	ErrorTextRU string          `json:"error_text_ru,omitempty"` // optional Текст ошибки на русском
 }
 
+// Tariff представляет собой структуру тариф для одного из сервисов.
 type Tariff struct {
 	AbonentPayment float64 `json:"abon"`    // Абоненская плата
 	RequestCost    float64 `json:"request"` // Стоимость запроса
@@ -48,7 +50,8 @@ func (t *Tariff) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
-// Текущий баланс по договору и список подключенных тарифов по мобильным операторам.
+// Balance содержит текущий баланс по договору и список подключенных тарифов
+// по мобильным операторам.
 type Balance struct {
 	Balance         float64 `json:"balance,string"` // Текущий остаток средств на балансе
 	Credit          float64 `json:"credit,string"`  // Сумма кредитных средств на балансе
@@ -94,12 +97,15 @@ func (b *Balance) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
+// CurrentCoordinates представляют собой текущие гео-координаты объекта.
+// Допускается null значения.
 type CurrentCoordinates struct {
 	CurrentLon *Coordinate `json:"current_lon"` // Широта последнего местоположения
 	CurrentLat *Coordinate `json:"current_lat"` // Долгота последнего местоположения
 }
 
-// Почти полная информация по объекту.
+// ObjectInfo содержит почти полную информацию по объекту, включая опции,
+// с которыми добавлялся объект.
 type ObjectInfo struct {
 	Phone         Object      `json:"phone"`                // Номер абонента
 	Status        Status      `json:"status"`               // status type
@@ -145,12 +151,14 @@ func (oi *ObjectInfo) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
+// Coordinates представляет собой структуру гео-координат.
 type Coordinates struct {
 	Lat Coordinate `json:"lat"` // Долгота
 	Lon Coordinate `json:"lon"` // Широта
 }
 
-// Список точек назначения, которые должен посетить Водитель.
+// Destination представляю собой структуру описания точки назначения,
+// в которую следует объект.
 type Destination struct {
 	Text string `json:"text"`
 	Coordinates
@@ -158,19 +166,20 @@ type Destination struct {
 	Status ETAStatus `json:"status"`
 }
 
-// Текущий статус объекта трекинга.
+// ObjectStatus представляет собой текущий статус объекта трекинга.
 type ObjectStatus struct {
 	Phone  Object `json:"phone"`  // Номер телефона абонента
 	Status Status `json:"status"` // Статус добавления для отслеживания
 }
 
-// Список объектов с их статусами.
+// ObjectsWithStatus является списком объектов с их статусами.
 type ObjectsWithStatus []ObjectStatus
 
 func (os ObjectsWithStatus) Len() int           { return len(os) }
 func (os ObjectsWithStatus) Swap(i, j int)      { os[i], os[j] = os[j], os[i] }
 func (os ObjectsWithStatus) Less(i, j int) bool { return os[i].Phone < os[j].Phone }
 
+// IsObjectIn проверяет, есть ли соответствующий объект в списке.
 func (os ObjectsWithStatus) IsObjectIn(o Object) bool {
 	for _, os := range os {
 		if os.Phone == o {
@@ -180,6 +189,8 @@ func (os ObjectsWithStatus) IsObjectIn(o Object) bool {
 	return false
 }
 
+// CoordinatesAttributes преставляет собой аттрибуты гео-координат.
+// ETA, статус ETA, описание гео-координат (обратный гео-кодинг)
 type CoordinatesAttributes struct {
 	Distance *Int `json:"distance"`                         // Остаток в км до конечной точки
 	ETA      *Int `json:"distance_forecast_time,omitempty"` // Прогноз оставшегося времени до конечной точки
@@ -211,10 +222,10 @@ type CoordinatesAttributes struct {
 //	return nil
 //}
 
-// Список местоположений
+// Positions является списком местоположений.
 type Positions []Position
 
-// Информация о последнем зафиксированном в системе местоположении
+// Position содержит информацию о последнем зафиксированном в системе местоположении.
 type Position struct {
 	Coordinates
 	Timestamp        Time `json:"timestamp"`                   // Время получения координат для этой точки
@@ -223,15 +234,18 @@ type Position struct {
 	CoordinatesAttributes
 }
 
-// Список объектов с координатами, последним временем обновления координат, текущим местонахождением и ETA.
+// ObjectPositions является списком объектов с гео-координатами, последним
+// временем обновления координат, текущим местонахождением и ETA.
 type ObjectPositions []ObjectPosition
 
-// Координаты, последнее временя обновления координат, текущее местонахождение и ETA объекта.
+// ObjectPosition представляет собой гео-координаты, последнее временя
+// обновления координат, текущее местонахождение и ETA объекта.
 type ObjectPosition struct {
 	Phone Object `json:"phone"` // Номер телефона абонента
 	Position
 }
 
+// PositionRequest хранит ID запроса на опреления гео-координат.
 type PositionRequest struct {
 	RequestID int64 `json:"request_id"`
 }
@@ -240,14 +254,14 @@ func (pr PositionRequest) values() url.Values {
 	return url.Values{"id": {strconv.FormatInt(pr.RequestID, 10)}}
 }
 
-// Информация по сотовому оператору
+// OperatorInfo содержит информацию о сотовом операторе.
 type OperatorInfo struct {
 	Operator Operator `json:"operator"`         // Внутренний идентификатор оператора
 	Title    string   `json:"title"`            // Название оператора
 	Region   string   `json:"region,omitempty"` // Домашний регион абонента
 }
 
-// Список событий по объектам
+// ObjectEvents является списком событий по объектам.
 type ObjectEvents []ObjectEvent
 
 // ObjectEvent содержит информацию о событиях, которые происходили с объектом.
@@ -278,7 +292,7 @@ func (oe *ObjectEvent) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
-// Список подписок на события
+// SubscribedEvents является списком подписок на события.
 type SubscribedEvents []SubscribedEvent
 
 // SubscribedEvent содержит информацию о подписке на одно из событий.
@@ -322,6 +336,10 @@ func (se *SubscribedEvent) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
+// MakeOptions создает опции на создание подписки на события на основе
+// существуещей подписки для последующего добавления.
+// Используется для редактирования подписки путем удаления старой и
+// добавления новой.
 func (se SubscribedEvent) MakeOptions() (seo SubscribeEventOptions, err error) {
 	seo = SubscribeEventOptions{}
 	seo.Event = se.Event
