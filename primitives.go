@@ -31,6 +31,7 @@ func (o Object) String() string {
 	for i := 0; i < len(num); i++ {
 		if num[i:i+1] == "9" {
 			num = num[i:]
+			break
 		}
 	}
 

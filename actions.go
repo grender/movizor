@@ -289,7 +289,6 @@ func NewSubscribeEventOptions(o Object, e EventType) SubscribeEventOptions {
 // SetSMSNotification устанавливает нотификацию на указанный телефон по СМС. Работает только та нотификация,
 // которая была установлена последней в данной подписке. Это особенности API Movizor.
 func (se *SubscribeEventOptions) SetSMSNotification(phone Object) error {
-	// ToDo: Переписать на что-то более надежное
 	if phone.String() == "" {
 		return fmt.Errorf("invalid phone number %s", string(phone))
 	}

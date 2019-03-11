@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-//func Test_Test (t *testing.T) {
+//func Test_Test(t *testing.T) {
 //}
 
 func TestObject_String(t *testing.T) {
@@ -38,8 +38,8 @@ func TestObject_String(t *testing.T) {
 		},
 		{
 			name: "nice format 5",
-			o:    Object("9123456787"),
-			want: "79123456787",
+			o:    Object("79898069996"),
+			want: "79898069996",
 		},
 		{
 			name: "not nice format 1",
@@ -259,6 +259,14 @@ func TestCoordinate_UnmarshalJSON(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "not nice format 1",
+			c:    new(Coordinate),
+			args: args{
+				data: []byte("180,00000000"),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -307,12 +315,21 @@ func TestTime_UnmarshalJSON(t *testing.T) {
 			args: args{
 				data: []byte("1548075614"),
 			},
+			wantErr: false,
 		},
 		{
 			name: "nice format 2",
 			args: args{
 				data: []byte(`"1548075614"`),
 			},
+			wantErr: false,
+		},
+		{
+			name: "null",
+			args: args{
+				data: []byte("null"),
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -409,6 +426,14 @@ func TestInt_UnmarshalJSON(t *testing.T) {
 				data: []byte(`"0"`),
 			},
 			wantErr: false,
+		},
+		{
+			name: "null",
+			i:    new(Int),
+			args: args{
+				data: []byte("null"),
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
