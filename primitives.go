@@ -46,7 +46,7 @@ func (o Object) String() string {
 func (o Object) values() (url.Values, error) {
 	p := o.String()
 	if p == "" {
-		return url.Values{}, fmt.Errorf("invalid format of phone number: %s , should be 79XXXXXXXXX", string(o))
+		return url.Values{}, fmt.Errorf("invalid format of phone number: %s (MSISDN: %s) , should be 79XXXXXXXXX", string(o), o.String())
 	}
 
 	return url.Values{"phone": {p}}, nil

@@ -38,8 +38,8 @@ func TestObject_String(t *testing.T) {
 		},
 		{
 			name: "nice format 5",
-			o:    Object("79898069996"),
-			want: "79898069996",
+			o:    Object("9969323273"),
+			want: "79969323273",
 		},
 		{
 			name: "not nice format 1",
