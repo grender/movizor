@@ -18,28 +18,28 @@ func TestObject_String(t *testing.T) {
 	}{
 		{
 			name: "nice format 1",
-			o:    Object("7912-345-67-87"),
-			want: "79123456787",
+			o:    Object("7912-345-97-87"),
+			want: "79123459787",
 		},
 		{
 			name: "nice format 2",
-			o:    Object("912-345-67-87"),
-			want: "79123456787",
+			o:    Object("912-345-97-87"),
+			want: "79123459787",
 		},
 		{
 			name: "nice format 3",
-			o:    Object("8(912)345-67-87"),
-			want: "79123456787",
+			o:    Object("8(912)345-97-87"),
+			want: "79123459787",
 		},
 		{
 			name: "nice format 4",
-			o:    Object("+7912-345-67-87"),
-			want: "79123456787",
+			o:    Object("+7912-345-97-87"),
+			want: "79123459787",
 		},
 		{
 			name: "nice format 5",
-			o:    Object("9969323273"),
-			want: "79969323273",
+			o:    Object("9123459787"),
+			want: "79123459787",
 		},
 		{
 			name: "not nice format 1",

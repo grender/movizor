@@ -28,15 +28,15 @@ func (o Object) String() string {
 	}
 	num := strings.Replace(strings.Map(f, string(o)), "&", "", -1)
 
-	for i := 0; i < len(num); i++ {
+	for i := 0; i < len([]rune(num)); i++ {
 		if num[i:i+1] == "9" {
 			num = num[i:]
 			break
 		}
 	}
 
-	if len(num) >= 10 {
-		num := num[len(num)-10:]
+	if l := len([]rune(num)); l >= 10 {
+		num := num[l-10:]
 		return "7" + num
 	}
 
