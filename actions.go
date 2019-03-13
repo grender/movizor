@@ -39,91 +39,23 @@ func (do DestinationOptions) addValuesTo(idx int, v *url.Values) error {
 // SchedulingOptions является расписанием запросов на определение координат объекта.
 type SchedulingOptions struct {
 	weekdays [7]bool
-	FireAt   []time.Time // st Массив времени в расписании. Передается в многомерном массиве, каждый вложенный элемент является временем для срабатывания расписания в формате hh:mm
+	FireAt   []time.Time // st Массив времени в расписании. Передается в многомерном массиве,
+	// каждый вложенный элемент является временем для срабатывания расписания в формате hh:mm
 }
 
-func (s SchedulingOptions) MondayOn() {
-	s.weekdays[0] = true
+// WeekdayOn добавляет день недели в расписание запросов на определение координат объекта.
+func (s *SchedulingOptions) WeekdayOn(day Weekday) {
+	s.weekdays[int(day)] = true
 }
 
-func (s SchedulingOptions) TuesdayOn() {
-	s.weekdays[1] = true
+// WeekdayOff исключает день недели из расписания запросов на определение координат объекта.
+func (s *SchedulingOptions) WeekdayOff(day Weekday) {
+	s.weekdays[int(day)] = false
 }
 
-func (s SchedulingOptions) WednesdayOn() {
-	s.weekdays[2] = true
-}
-
-func (s SchedulingOptions) ThursdayOn() {
-	s.weekdays[3] = true
-}
-
-func (s SchedulingOptions) FridayOn() {
-	s.weekdays[4] = true
-}
-
-func (s SchedulingOptions) SaturdayOn() {
-	s.weekdays[5] = true
-}
-
-func (s SchedulingOptions) SundayOn() {
-	s.weekdays[6] = true
-}
-
-func (s SchedulingOptions) MondayOff() {
-	s.weekdays[0] = false
-}
-
-func (s SchedulingOptions) TuesdayOff() {
-	s.weekdays[1] = false
-}
-
-func (s SchedulingOptions) WednesdayOff() {
-	s.weekdays[2] = false
-}
-
-func (s SchedulingOptions) ThursdayOff() {
-	s.weekdays[3] = false
-}
-
-func (s SchedulingOptions) FridayOff() {
-	s.weekdays[4] = false
-}
-
-func (s SchedulingOptions) SaturdayOff() {
-	s.weekdays[5] = false
-}
-
-func (s SchedulingOptions) SundayOff() {
-	s.weekdays[6] = false
-}
-
-func (s SchedulingOptions) IsMondayOn() bool {
-	return s.weekdays[0]
-}
-
-func (s SchedulingOptions) IsTuesdayOn() bool {
-	return s.weekdays[1]
-}
-
-func (s SchedulingOptions) IsWednesdayOn() bool {
-	return s.weekdays[2]
-}
-
-func (s SchedulingOptions) IsThursdayOn() bool {
-	return s.weekdays[3]
-}
-
-func (s SchedulingOptions) IsFridayOn() bool {
-	return s.weekdays[4]
-}
-
-func (s SchedulingOptions) IsSaturdayOn() bool {
-	return s.weekdays[5]
-}
-
-func (s SchedulingOptions) IsSundayOn() bool {
-	return s.weekdays[6]
+// IsWeekdayOn возвращает текущее состояние расписания запросов для указанного дня недели.
+func (s *SchedulingOptions) IsWeekdayOn(day Weekday) bool {
+	return s.weekdays[int(day)]
 }
 
 func (s *SchedulingOptions) addValuesTo(v *url.Values) error {
