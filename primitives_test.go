@@ -331,6 +331,13 @@ func TestTime_UnmarshalJSON(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid json",
+			args: args{
+				data: []byte("{]"),
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -432,6 +439,14 @@ func TestInt_UnmarshalJSON(t *testing.T) {
 			i:    new(Int),
 			args: args{
 				data: []byte("null"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid json",
+			i:    new(Int),
+			args: args{
+				data: []byte("{]"),
 			},
 			wantErr: true,
 		},
