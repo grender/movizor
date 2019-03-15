@@ -1,6 +1,7 @@
 package movizor
 
 import (
+	"net/url"
 	"testing"
 	"time"
 )
@@ -235,64 +236,143 @@ func TestSchedulingOptions_WeekdayOff(t *testing.T) {
 	}
 }
 
-//func TestSchedulingOptions_IsWeekdayOn(t *testing.T) {
-//	type fields struct {
-//		weekdays [7]bool
-//		FireAt   []time.Time
-//	}
-//	type args struct {
-//		day Weekday
-//	}
-//	tests := []struct {
-//		name   string
-//		fields fields
-//		args   args
-//		want   bool
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			s := &SchedulingOptions{
-//				weekdays: tt.fields.weekdays,
-//				FireAt:   tt.fields.FireAt,
-//			}
-//			if got := s.IsWeekdayOn(tt.args.day); got != tt.want {
-//				t.Errorf("SchedulingOptions.IsWeekdayOn() = %v, want %v", got, tt.want)
-//			}
-//		})
-//	}
-//}
-//
-//func TestSchedulingOptions_addValuesTo(t *testing.T) {
-//	type fields struct {
-//		weekdays [7]bool
-//		FireAt   []time.Time
-//	}
-//	type args struct {
-//		v *url.Values
-//	}
-//	tests := []struct {
-//		name    string
-//		fields  fields
-//		args    args
-//		wantErr bool
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			s := &SchedulingOptions{
-//				weekdays: tt.fields.weekdays,
-//				FireAt:   tt.fields.FireAt,
-//			}
-//			if err := s.addValuesTo(tt.args.v); (err != nil) != tt.wantErr {
-//				t.Errorf("SchedulingOptions.addValuesTo() error = %v, wantErr %v", err, tt.wantErr)
-//			}
-//		})
-//	}
-//}
-//
+func TestSchedulingOptions_IsWeekdayOn(t *testing.T) {
+	type fields struct {
+		weekdays [7]bool
+		FireAt   []time.Time
+	}
+	type args struct {
+		day Weekday
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		{
+			name: "monday_on",
+			fields: fields{
+				weekdays: [7]bool{true, false, false, false, false, false, false},
+				FireAt:   []time.Time{},
+			},
+			args: args{
+				day: Monday,
+			},
+			want: true,
+		},
+		{
+			name: "monday_off",
+			fields: fields{
+				weekdays: [7]bool{false, true, true, true, true, true, true},
+				FireAt:   []time.Time{},
+			},
+			args: args{
+				day: Monday,
+			},
+			want: false,
+		},
+		{
+			name: "sunday_on",
+			fields: fields{
+				weekdays: [7]bool{false, false, false, false, false, false, true},
+				FireAt:   []time.Time{},
+			},
+			args: args{
+				day: Sunday,
+			},
+			want: true,
+		},
+		{
+			name: "sunday_off",
+			fields: fields{
+				weekdays: [7]bool{true, true, true, true, true, true, false},
+				FireAt:   []time.Time{},
+			},
+			args: args{
+				day: Sunday,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &SchedulingOptions{
+				weekdays: tt.fields.weekdays,
+				FireAt:   tt.fields.FireAt,
+			}
+			if got := s.IsWeekdayOn(tt.args.day); got != tt.want {
+				t.Errorf("SchedulingOptions.IsWeekdayOn() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSchedulingOptions_addValuesTo(t *testing.T) {
+	type fields struct {
+		weekdays [7]bool
+		FireAt   []time.Time
+	}
+	type args struct {
+		v *url.Values
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "time is not set",
+			fields: fields{
+				weekdays: [7]bool{true, false, false, false, false, false, false},
+				FireAt:   []time.Time{},
+			},
+			args: args{
+				v: &url.Values{},
+			},
+			wantErr: true,
+		},
+		{
+			name: "day is not set",
+			fields: fields{
+				weekdays: [7]bool{false, false, false, false, false, false, false},
+				FireAt: []time.Time{
+					time.Now(),
+				},
+			},
+			args: args{
+				v: &url.Values{},
+			},
+			wantErr: true,
+		},
+		{
+			name: "day & time are set",
+			fields: fields{
+				weekdays: [7]bool{true, false, true, false, true, false, false},
+				FireAt: []time.Time{
+					time.Now(),
+				},
+			},
+			args: args{
+				v: &url.Values{},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &SchedulingOptions{
+				weekdays: tt.fields.weekdays,
+				FireAt:   tt.fields.FireAt,
+			}
+			if err := s.addValuesTo(tt.args.v); (err != nil) != tt.wantErr {
+				t.Errorf("SchedulingOptions.addValuesTo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 //func TestObjectOptions_addValuesTo(t *testing.T) {
 //	type fields struct {
 //		Title          string
