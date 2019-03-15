@@ -347,6 +347,17 @@ func TestSchedulingOptions_addValuesTo(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "values are nil",
+			fields: fields{
+				weekdays: [7]bool{false, false, false, false, false, false, false},
+				FireAt: []time.Time{
+					time.Now(),
+				},
+			},
+			args:    args{nil},
+			wantErr: true,
+		},
+		{
 			name: "day & time are set",
 			fields: fields{
 				weekdays: [7]bool{true, false, true, false, true, false, false},
