@@ -1,3 +1,3 @@
-module github.com/grender/movizor
+module github.com/UndeadDemidov/movizor
 
 go 1.12
